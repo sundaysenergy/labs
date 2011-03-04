@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the domain_features feature.
+ */
+
+include_once('domain_features.features.inc');
