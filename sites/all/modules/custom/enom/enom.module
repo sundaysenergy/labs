@@ -39,6 +39,22 @@ function enom_menu() {
 }
 
 /**
+ *
+ */
+function enom_page() {
+  $args = array(
+    'sld' => 'example',
+    'tld' => 'com',
+  );
+  //$r = enom_interface_command('check', $args);
+
+  #$service = wsclient_service_load('google');
+  #$result = $service->translate('hello world', 'en|de');
+  $domains = enom_check($form_state['values']['domain']);
+  return kpr($domains, TRUE);
+}
+
+/**
  * A very basic form which with an AJAX-enabled submit.
  *
  * On submit, the markup in the #markup element is updated.
@@ -219,40 +235,13 @@ function enom_default_wsclient_service() {
   $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'check');
   $operation['parameter']['uid'] = array('type' => 'hidden', 'default value' => 'sundaysenergy');
   $operation['parameter']['pw'] = array('type' => 'hidden', 'default value' => 'zola322');
-  $operation['parameter']['responsetype'] = array('type' => 'hidden', 'default value' => 'xml');
+  #$operation['parameter']['responsetype'] = array('type' => 'hidden', 'default value' => 'xml');
 
   $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
   $service->operations['check'] = $operation;
 
   $services[$service->name] = $service;
   return $services;
-}
-
-/**
- *
- */
-function enom_page() {
-  $args = array(
-    'sld' => 'example',
-    'tld' => 'com',
-  );
-  //$r = enom_interface_command('check', $args);
-
-  #$service = wsclient_service_load('google');
-
-  $service = wsclient_service_load('enom');
-  #module_load_include('inc', 'enom', 'includes/HttpClientINIFormatter');
-  #$service->settings['formatter'] = new HttpClientINIFormatter();
-  $service->settings['formatter'] = new HttpClientXMLFormatter();
-
-  $service->settings['curl options'] = array(
-    CURLOPT_PROXYPORT => 8888,
-    CURLOPT_PROXY => 'localhost',
-  );
-  #$result = $service->translate('hello world', 'en|de');
-  $result = (array) $service->check('kaiexample1', '*');
-
-  return kpr($result, TRUE);
 }
 
 /**
