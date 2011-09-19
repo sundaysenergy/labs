@@ -1,0 +1,6 @@
+name = Web service client HTTP
+description = Implements a HTTP endpoint to connect to HTTP services.
+package = Services
+core = 7.x
+files[] = wsclient_http.module
+dependencies[] = wsclient
