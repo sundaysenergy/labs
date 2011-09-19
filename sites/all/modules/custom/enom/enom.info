@@ -6,5 +6,9 @@ package = Services - clients
 files[] = enom.module
 files[] = includes/HttpClientXMLFormatter.inc
 
+dependencies[] = wsclient
+dependencies[] = wsclient_rest
+dependencies[] = http_client
+
 configure = admin/config/enom/settings
 version = 0.1
