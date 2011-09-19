@@ -1,0 +1,10 @@
+name = Enom API
+description = "Interface with Enom API."
+core = 7.x
+package = Services - clients
+
+files[] = enom.module
+files[] = includes/HttpClientXMLFormatter.inc
+
+configure = admin/config/enom/settings
+version = 0.1

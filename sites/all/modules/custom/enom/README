@@ -1,0 +1,19 @@
+Enom Integration for Drupal 7.x
+Uses rules
+Easy integration with Drupal Commerce
+
+Example workflow 1:
+* User creates node with a domain name field. Perhaps this is simply the node title.
+* Client side ajax validation before page submit tells user if it’s available or not.
+* Do we need a specific cck type field for client side validation to work correctly? Perhaps this could be a setting where the validator simply looks for an html element id and validates the text string within it.
+* Rules trigger is on node save.
+* Rules action is to register the domain based on the field argument.
+
+Example workflow 2:
+* Customer wishes to purchase domain
+* Vsits product (display?) node.
+* Domain registration specific page with domain registration form. Single text field.
+* Client side validation.
+* The submit button adds to order and takes user to checkout
+* Rule trigger is order with balance < 0
+* Action takes argument (how do we pass the domain name?) and registers domain name.
