@@ -46,11 +46,12 @@ function enom_page() {
     'sld' => 'example',
     'tld' => 'com',
   );
-  //$r = enom_interface_command('check', $args);
+  #$domains = enom_interface_command('check', $args);
 
   #$service = wsclient_service_load('google');
-  #$result = $service->translate('hello world', 'en|de');
-  $domains = enom_check($form_state['values']['domain']);
+  #$domains = $service->translate('hello world', 'en|de');
+
+  $domains = enom_check('ookc.com');
   return kpr($domains, TRUE);
 }
 
@@ -150,17 +151,29 @@ function enom_check($domain) {
   if (!isset($result['RRPCode'])) {
     return FALSE;
   }
-
+  $success_code = 210;
+  $domain_name = FALSE;
   // Single result
   if (!is_array($result['RRPCode'])) {
-    return array($result['Domain'] => (210 == $result['RRPCode']));
+    // This is how a single tld check is returned normally
+    if (isset($result['DomainName'])) {
+      $domain_name = $result['DomainName'];
+    }
+    // I think it only ever does this when many tld are checked
+    elseif (isset($result['Domain']) && !is_array($result['Domain'])) {
+      $domain_name = $result['Domain'];
+    }
+    // 
+    if ($domain_name) {
+      return array($domain_name => ($success_code == $result['RRPCode']));
+    }
   }
 
   // Many results
   if (is_array($result['RRPCode']) && is_array($result['Domain'])) {
     $domains = array();
     foreach ($result['RRPCode'] as $key => $code) {
-      $domains[$result['Domain'][$key]] = (210 == $code);
+      $domains[$result['Domain'][$key]] = ($success_code == $code);
     }
     return $domains;
   }
@@ -177,10 +190,12 @@ function _enom_service() {
   module_load_include('inc', 'enom', 'includes/HttpClientINIFormatter');
   $service->settings['formatter'] = new HttpClientINIFormatter();
   #$service->settings['formatter'] = new HttpClientXMLFormatter();
-  $service->settings['curl options'] = array(
-    CURLOPT_PROXYPORT => 8888,
-    CURLOPT_PROXY => 'localhost',
-  );
+  if ($proxy = variable_get('enom_proxy', FALSE)) {
+    $service->settings['curl options'] = array(
+      CURLOPT_PROXYPORT => variable_get('enom_proxy_port', 8888),
+      CURLOPT_PROXY => $proxy,
+    );
+  }
   return $service;
 }
 
@@ -332,6 +347,15 @@ function enom_interface_command($command, $args = array()) {
     return $result;
   }
   return $request;
+}
+
+/**
+ *
+ */
+function _enom_parse_response($data) {
+  module_load_include('inc', 'enom', 'includes/HttpClientINIFormatter');
+  //$parse = new 
+  return $data;
 }
 
 /**
