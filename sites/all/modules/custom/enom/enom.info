@@ -3,12 +3,15 @@ description = "Interface with Enom API."
 core = 7.x
 package = Services - clients
 
-files[] = enom.module
-files[] = includes/HttpClientXMLFormatter.inc
+files[] = includes/HttpClientINIFormatter.inc
+files[] = includes/EnomWSClientRESTEndpoint.inc
 
 dependencies[] = wsclient
 dependencies[] = wsclient_rest
 dependencies[] = http_client
+dependencies[] = rules
+
+; class HttpClientINIFormatter uses parse_ini_string()
+php = 5.3
 
 configure = admin/config/enom/settings
-version = 0.1

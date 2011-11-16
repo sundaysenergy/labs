@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * @file
@@ -15,6 +14,14 @@
  */
 
 /**
+ * Implements hook_init()
+ */
+function enom_init() {
+  // TODO: figure out a better way to include api
+  module_load_include("inc", "enom", "enom.api");
+}
+
+/**
  * Implements hook_menu().
  */
 function enom_menu() {
@@ -24,7 +31,6 @@ function enom_menu() {
     'title' => 'Enom Tests',
     'page callback' => 'enom_page',
     'access arguments' => array('administer web services'),
-    //'file' => 'wsclient_ui.inc',
   );
 
   // Submit a form without a page reload.
@@ -50,9 +56,11 @@ function enom_page() {
 
   #$service = wsclient_service_load('google');
   #$domains = $service->translate('hello world', 'en|de');
-
-  $domains = enom_check('ookc.com');
-  return kpr($domains, TRUE);
+  
+  $r = enom_check('ookc.com');
+  #$r = enom_get_tlds();
+  
+  return kpr($r, TRUE);
 }
 
 /**
@@ -61,10 +69,55 @@ function enom_page() {
  * On submit, the markup in the #markup element is updated.
  */
 function enom_register($form, &$form_state) {
+  #dpm($form_state);
   $form['domain'] = array(
     '#type' => 'textfield',
     '#title' => t('Domain Name'),
+    '#ajax' => array(
+      'callback' => 'enom_register_ajax_submit',
+      'wrapper' => 'results',
+      //'method' defaults to replaceWith, but valid values also include
+      // append, prepend, before and after.
+      // 'method' => 'replaceWith',
+      // 'effect' defaults to none. Other valid values are 'fade' and 'slide'.
+      // See ajax_example_autotextfields for an example of 'fade'.
+      'effect' => 'fade',
+      // 'speed' defaults to 'slow'. You can also use 'fast'
+      // or a number of milliseconds for the animation to last.
+      // 'speed' => 'slow',
+      // Don't show any throbber...
+      //'progress' => array('type' => 'none'),
+    ),
   );
+  $form['domains'] = array(
+    '#type' => 'value',
+    '#value' => array(),
+  );
+
+  $form['results'] = array(
+    '#title' => t("Search Results"),
+    // The prefix/suffix provide the div that we're replacing, named by
+    // #ajax['wrapper'] above.
+    '#prefix' => '<div id="results">',
+    '#suffix' => '</div>',
+    '#type' => 'fieldset',
+    '#description' => t('This is where we get automatically generated checkboxes'),
+  );
+  $form['results']['purchase'] = array(
+    '#type'   => 'checkboxes',
+    '#title'  => t('Instant Purchase'),
+    '#options' => array(),
+  );
+  $form['results']['results_markup'] = array(
+    '#type' => 'markup',
+    '#markup' => 'Please search for a domain name.',
+  );
+
+  if (!empty($form_state['values']['domains'])) {
+    $domains = $form_state['values']['domains'];
+
+  }
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#ajax' => array(
@@ -74,12 +127,7 @@ function enom_register($form, &$form_state) {
     ),
     '#value' => t('Submit'),
   );
-  $form['results'] = array(
-    '#type' => 'markup',
-    '#prefix' => '<div id="results">',
-    '#suffix' => '</div>',
-    '#markup' => '<h2>Please search for a domain name.</h2>',
-  );
+
   return $form;
 }
 
@@ -101,17 +149,25 @@ function enom_register_validate($form, &$form_state) {
  *
  * @return renderable array (the box element)
  */
-function enom_register_ajax_submit($form, $form_state) {
+function enom_register_ajax_submit($form, &$form_state) {
   // In most cases, it is recomended that you put this logic in form generation
   // rather than the callback. Submit driven forms are an exception, because
   // you may not want to return the form at all.
-  $element = $form['results'];
   $domains = enom_check($form_state['values']['domain']);
+  $buy_domains = array_filter($domains);
+  $form_state['values']['domains'] = array_combine($buy_domains, $buy_domains);
   // Do check service
+
+  $element = $form['results']['results_markup'];
   if (!$domains) {
-    $element['#markup'] = t('An error occurred. Please try again later.');
+    $element['#markup'] = t('An error occurred. Please enter a valid url.  Example: example.com');
   }
-  $element['#markup'] = theme_result_list($domains);
+  else {
+    $element['#markup'] = theme_result_list($domains);
+    $element = $form['results']['purchase'];
+    $element['#options'] = $form_state['values']['domains'];
+  }
+
   return $element;
 }
 
@@ -134,257 +190,4 @@ function theme_result_list($results) {
   }
   $title = t('Search Results');
   return theme('item_list', array('items' => $list, 'title' => $title));
-}
-
-/**
- * Check for domain name and return results keyed with domain name value TRUE if available
- */
-function enom_check($domain) {
-  $domain = enom_validate($domain);
-  $service = _enom_service();
-  $result = $service->check($domain[0], $domain[1]);
-  // Do check service
-  if (enom_error_check($result)) {
-    return FALSE;
-  }
-  // Need RRPCode to know if a domain is available
-  if (!isset($result['RRPCode'])) {
-    return FALSE;
-  }
-  $success_code = 210;
-  $domain_name = FALSE;
-  // Single result
-  if (!is_array($result['RRPCode'])) {
-    // This is how a single tld check is returned normally
-    if (isset($result['DomainName'])) {
-      $domain_name = $result['DomainName'];
-    }
-    // I think it only ever does this when many tld are checked
-    elseif (isset($result['Domain']) && !is_array($result['Domain'])) {
-      $domain_name = $result['Domain'];
-    }
-    // 
-    if ($domain_name) {
-      return array($domain_name => ($success_code == $result['RRPCode']));
-    }
-  }
-
-  // Many results
-  if (is_array($result['RRPCode']) && is_array($result['Domain'])) {
-    $domains = array();
-    foreach ($result['RRPCode'] as $key => $code) {
-      $domains[$result['Domain'][$key]] = ($success_code == $code);
-    }
-    return $domains;
-  }
-
-  // Something very wrong to get this far and still FALSE
-  return FALSE;
-}
-
-/**
- * Build up a basic service
- */
-function _enom_service() {
-  $service = wsclient_service_load('enom');
-  module_load_include('inc', 'enom', 'includes/HttpClientINIFormatter');
-  $service->settings['formatter'] = new HttpClientINIFormatter();
-  #$service->settings['formatter'] = new HttpClientXMLFormatter();
-  if ($proxy = variable_get('enom_proxy', FALSE)) {
-    $service->settings['curl options'] = array(
-      CURLOPT_PROXYPORT => variable_get('enom_proxy_port', 8888),
-      CURLOPT_PROXY => $proxy,
-    );
-  }
-  return $service;
-}
-
-/**
- * Implements hook_default_wsclient_service().
- * This defines all the enom calls
- */
-function enom_default_wsclient_service() {
-  // Enom service (RESTish)
-  $service = new WSClientServiceDescription();
-  $service->name = 'enom';
-  $service->label = 'Enom Service APIs';
-  $service->url = 'http://resellertest.enom.com/interface.asp';
-  $service->type = 'rest';
-
-  // Add info about the REST service, which the user has to provide via the UI.
-  $service->datatypes = array(
-    'enom_result' => array(
-      'label' => 'Enom result',
-      'property info' => array(
-        // array key
-        'RRPCode' => array(
-          'type' => 'integer',
-          //'type' => 'struct', // array
-          'label' => 'Result code. 210 = available; 211 = unavailable',
-        ),
-        'RRPText' => array(
-          'type' => 'text',
-          //'type' => 'struct', // array
-          'label' => 'Result text.',
-        ),
-      ),
-    ),
-  );
-
-  // define the operations
-  $operation['label'] = 'Check domain';
-  #$operation['url'] = 'language/translate';
-  $operation['parameter']['sld'] = array(
-    'type' => 'text',
-    'label' => 'Second Level Domain',
-    'description' => 'The name placed to the left of the TLD separated by a dot.
-       In "example.com", "example" is the SLD and "com" is the TLD.',
-  );
-  $operation['parameter']['tld'] = array(
-    'type' => 'text',
-    'label' => 'Top Level Domain',
-    'description' => 'The name placed to the right of the SLD.
-        In "example.com", "com" is the TLD. * returns 11 commonly used TLDs.
-        *1 returns 7, *2 returns 6, @ returns com, net, org',
-  );
-  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'check');
-  $operation['parameter']['uid'] = array('type' => 'hidden', 'default value' => 'sundaysenergy');
-  $operation['parameter']['pw'] = array('type' => 'hidden', 'default value' => 'zola322');
-  #$operation['parameter']['responsetype'] = array('type' => 'hidden', 'default value' => 'xml');
-
-  $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
-  $service->operations['check'] = $operation;
-
-  $services[$service->name] = $service;
-  return $services;
-}
-
-/**
- * @param $domain - string
- */
-function enom_validate($domain, $warnings = FALSE) {
-  $domain = strtolower($domain);
-
-  // quick basic validate domain
-/*
-  $preg = '/^([a-z0-9]([-a-z0-9]*[a-z0-9])?\\.)+((a[cdefgilmnoqrstuwxz]|';
-  if (preg_match($preg, $domain)) {
-    drupal_set_message('valid domain name');
-  }
-*/
-
-  // check for domain/tld separator
-  $domain = explode('.', $domain, 2);
-  if (!isset($domain[1])) {
-    $domain[1] = '*';
-  }
-
-  // SLD Must not start or end with '-'
-  $len = strlen($domain[0]);
-  if ($domain[0][0] == '-' || $domain[0][$len-1] == '-') {
-    if ($warnings) {
-      drupal_set_message(t('Domain names may not begin or end with a dash.'), 'error');
-    }
-    return FALSE;
-  }
-  // SLD Correct Lenght
-  if ($len < 2 || $len > 63) {
-    if ($warnings) {
-      drupal_set_message(t('Domain names must be between 2 and 63 characters long.'), 'error');
-    }
-    return FALSE;
-  }
-
-  // if ($warnings) drupal_set_message(t('The domain name specified is malformed. Please check that it has the format: example.com'), 'error');
-
-  // validate tld
-  // @TODO cache this
-/*
-  $validtlds = enom_get_tlds();
-  if (in_array($tld, $validtlds)==false) {
-    if ($warnings) {
-      drupal_set_message(t('The top-level domain specified (.@tld) is not available.', array('@tld' => $tld)), 'error');
-    }
-    return false;
-  }
-*/
-  return $domain;
-}
-
-/**
- * @param $command - text - enom command, example "check"
- * @param $args - array of args to send to command
- */
-function enom_interface_command($command, $args = array()) {
-  $args += array(
-    'uid'     => variable_get('enom_user', 'sundaysenergy'),
-    'pw'      => variable_get('enom_pass', 'zola322'),
-    'command' => $command,
-  );
-
-  if (empty($args['uid']) || empty($args['pw']) || empty($args['command'])) {
-    //@TODO
-    return false;
-  }
-
-  $enomhost = variable_get('enom_host', 'https://resellertest.enom.com/interface.asp');
-
-  $options = array(
-    'query'     => $args,
-    'external'  => TRUE,
-    'https'     => TRUE,
-  );
-
-  $url = url($enomhost, $options);
-
-  $request = drupal_http_request($url, $options);
-  if (FALSE == $request) {
-    watchdog('enom', t('Could not connect to ENOM server. Please try again later.'), WATCHDOG_ERROR);
-    return FALSE;
-  }
-  if (isset($request->data) && $request->data && $request->code < 400) {
-    $result = _enom_parse_response($request->data);
-    return $result;
-  }
-  return $request;
-}
-
-/**
- *
- */
-function _enom_parse_response($data) {
-  module_load_include('inc', 'enom', 'includes/HttpClientINIFormatter');
-  //$parse = new 
-  return $data;
-}
-
-/**
- * @param $response array returned from enom service
- * @param $set_message - Print errors to screen
- * @return bool - True if it finds errors
- */
-function enom_error_check($response, $set_message = FALSE) {
-  $errors = array();
-  if (!isset($response['ErrCount'])) {
-    $errors[] = t("Did not get a valid Server response.  No 'ErrCount' found. Please try again later.");
-  }
-  else if ($response['ErrCount'] && isset($response['Err1'])) {
-    for ($i = 1; $i <= $res['ErrCount']; $i++) {
-      $errors[] = $response['Err'. $i];
-    }
-    if (isset($response['ResponseString1'])) {
-      $errors[] = $response['ResponseString1'];
-    }
-    if (isset($response['ResponseNumber1'])) {
-      $errors[] = $response['ResponseNumber1'];
-    }
-  }
-  if (!empty($errors)) {
-    $msg = t('An error occured. !errors');
-    $tokens = array('!errors' => theme('item_list', $errors));
-    if ($set_message) dpm($errors);
-    watchdog('enom', $msg, $tokens, WATCHDOG_ERROR);
-    return TRUE;
-  }
-  return FALSE;
 }
