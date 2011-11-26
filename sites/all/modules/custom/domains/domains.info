@@ -1,0 +1,12 @@
+name = Domains
+description = "The user interface and general business logic surrounding domain name registration, renewal, expiration, transfer, and ownership"
+core = 7.x
+
+files[] = includes/DomainEntityController.inc
+files[] = includes/DomainEntity.inc
+files[] = includes/DomainControllerInterface.inc
+
+dependencies[] = entity
+dependencies[] = ctools
+dependencies[] = rules
+dependencies[] = rules_scheduler

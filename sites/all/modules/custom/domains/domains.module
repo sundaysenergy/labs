@@ -1,0 +1,335 @@
+<?php
+
+/**
+ * @file
+ */
+
+module_load_include('inc', 'domains');
+
+/**
+ * Implements hook_menu()
+ */
+function domains_menu() {
+  $items['admin/config/domains'] = array(
+    'title' => 'Domain',
+    'description' => 'Manage domain',
+    'page callback' => 'domain_info',
+    'file' => 'domains.admin.inc',
+    'access arguments' => array('administer domains'),
+  );
+
+  $items['admin/config/domains/manage'] = array(
+    'title' => 'Domain Entity',
+    'description' => 'Manage domain entity',
+    'page callback' => 'domain_info',
+    'access arguments' => array('administer domains'),
+  );
+
+  $items['domain/%domain'] = array(
+    'title callback' => 'domain_page_title',
+    'title arguments' => array(1),
+    'page callback' => 'domain_page_view',
+    'page arguments' => array(1),
+    'access arguments' => array('view domains'),
+  );
+  $items['domain/%domain/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['domain/%domain/renew'] = array(
+    'title' => 'Renew',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('domains_renew_form', 1),
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['domain/add'] = array(
+    'title' => 'Add domain',
+    'page callback' => 'domain_add',
+    'access arguments' => array('create domain'),
+  );
+
+  // domain management dashboard
+  $items['domain'] = array(
+    'title' => 'Manage Domain',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'domains_dashboard_page',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  // Submit a form without a page reload.
+  $items['domain/register'] = array(
+    'title'   => 'Register Domain',
+    'file'    => 'domains.pages.inc',
+    'page callback'   => 'drupal_get_form',
+    'page arguments'  => array('domains_register_form'),
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  // batch process checked domains for registration form
+  $items['domain/register/process'] = array(
+    'title' => 'Register Domain',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'domains_register_process_page',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission()
+ */
+function domains_permission() {
+  return array(
+    'administer domains' => array(
+      'title' => t('Administer domain'),
+      'description' => 'Perform administration tasks for domain entity.',
+    ),
+    'view domains' => array(
+      'title' => t('View Domains'),
+    ),
+    'add domain' => array(
+      'title' => t('Add domain'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme
+ */
+function domains_theme() {
+  return array(
+    'domains_result_list' => array(
+      'variables' => array('results' => NULL),
+      'file' => 'domains.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_info()
+ */
+function domains_entity_info() {
+  $info['domain'] = array(
+    'label' => t('Domain'),
+    'entity class' => 'DomainEntity',
+    'controller class' => 'DomainEntityController',
+    'metadata controller class' => '',
+    'base table' => 'domain',
+    'modules' => 'domains',
+    'uri callback' => 'domain_uri',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+    ),
+    'static cache' => TRUE,
+    'bundles' => array(
+      'domain'=> array(
+        'label' => 'Domain',
+        'admin' => array(
+          'path' => 'admin/config/domains/manage',
+          'access arguments' => array('administer domains'),
+        ),
+      ),
+    ),
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' =>  FALSE,
+      ),
+    )
+  );
+  
+  return $info;
+}
+
+/**
+ * Implements hook_field_extra_fields()
+ */
+function domains_field_extra_fields() {
+  $return['domain']['domain'] = array(
+    'form' => array(
+      'name' => array(
+        'label' => t('Domain Name'),
+        'description' => t('Unique domain name across system.'),
+        'weight' => -5,
+      ),
+      'expiration' => array(
+        'label' => t('Expiration Time'),
+        'description' => t('Domain expiration time in GMT.'),
+        'weight' => -4
+      ),
+    ),
+    'display' => array(
+      'name' => array(
+        'label' => t('Domain Name'),
+        'description' => t('Unique domain name across system.'),
+        'weight' => -5,
+      ),
+      'expiration' => array(
+        'label' => t('Expiration Time'),
+        'description' => t('Domain expiration time in GMT.'),
+        'weight' => -4
+      ),
+    ),
+  );
+
+  return $return;
+}
+
+function domain_info() {
+  return t('Welcome to the administration page for domains!');
+}
+
+function domain_uri($domain) {
+  return array(
+    'path' => 'domain/' . $domain->id,
+  );
+}
+
+function domain_load($did = NULL, $reset = FALSE){
+  $dids = (isset ($did) ? array($did) : array());
+  $domains = domain_load_multiple($dids, $reset);
+  return $domains ? reset ($domains) : FALSE;
+}
+
+function domain_load_multiple($dids = FALSE, $conditions = array(), $reset = FALSE){
+  return entity_load('domain', $dids, $conditions, $reset);
+}
+
+function domain_save(&$domain) {
+  return entity_get_controller('domain')->save($domain);
+}
+
+function domain_page_title($domain){
+  return $domain->name;
+}
+
+function domain_page_view($domain, $view_mode = 'full'){
+  return entity_build_content('domain', $domain, $view_mode);
+}
+
+/**
+ * Callback for getting domain properties.
+ */
+function domain_get_properties($domain, array $options, $name) {
+  switch ($name) {
+    case 'creator':
+      return $domain->uid;
+  }
+}
+
+/**
+ * Call back for setting properties of domain
+ */
+function domain_set_properties($domain, $name, $value) {
+  if ($name == 'creator') {
+    $domain->uid = $value;
+  }
+}
+
+/**
+ * Add domain menu callback
+ */
+function domain_add() {
+  $domain = (object) array (
+    'id' => '',
+    'type' => 'domain',
+    'note' => '',
+  );
+
+  return drupal_get_form('domain_add_form', $domain);
+}
+
+/**
+ * Add domain form
+ */
+function domain_add_form($form, &$form_state, $domain) {
+  global $user;
+
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#required' => TRUE,
+  );
+
+  $form['uid'] = array(
+    '#type' => 'value',
+    '#default_value' => $user->uid,
+  );
+  
+  $form['controller'] = array(
+    '#type' => 'value',
+    '#default_value' => '',
+  );
+
+  $form['expiration'] = array(
+    '#type' => 'value',
+    '#default_value' => '',
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  field_attach_form('domain', $domain, $form, $form_state);
+  return $form;
+}
+
+/**
+ * Add domain validate callback
+ */
+function domain_add_form_validate($form, &$form_state) {
+  $form_state['values']['name'] = strtolower($form_state['values']['name']);
+  $domain = $form_state['values']['name']; 
+
+  // Validate domain name across system and provider
+  if (!domains_validate_name($domain, FALSE)) {
+    form_set_error('name', t('Please enter a valid domain like example.com'));
+  } else {
+    if (count(entity_load('domain', FALSE, array('name' => $domain)))) {
+      form_set_error('name', t('Domain @domain already existed in the system.', array('@domain' => $domain)));
+    } else {
+      $info = domains_find_domain($form_state['values']['name']);
+
+      if ($info === FALSE) {
+        form_set_error('name', t('Unable to validate your domain name.'));
+      }
+      else if (count($info)) {
+        // Use the first provider for now.
+        foreach ($info as $controller => $domain_info) {
+          $form_state['values']['controller'] = $controller;
+          $form_state['values']['expiration'] = $domain_info['expiration'];
+          break;
+        }
+      }
+      else {
+        form_set_error('name', t('Domain @domain is not registered with any provider. Please use domain register form to regsiter new domain.', array('@domain' => $domain)));
+      }
+    }
+  }
+
+  $domain_submisttion = (object) $form_state['values'];
+  field_attach_form_validate('domain', $domain_submisttion, $form, $form_state);
+}
+
+/**
+ * Domain add form callback 
+ */
+function domain_add_form_submit($form, &$form_state) {
+  global $user;
+
+  $domain = (object) $form_state['values'];
+  field_attach_submit('domain', $domain, $form, $form_state);
+  domain_save($domain);
+
+  $form_state['redirect'] = "domain/{$domain->id}";
+}

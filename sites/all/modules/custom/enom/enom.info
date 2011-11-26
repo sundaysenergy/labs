@@ -5,7 +5,10 @@ package = Services - clients
 
 files[] = includes/HttpClientINIFormatter.inc
 files[] = includes/EnomWSClientRESTEndpoint.inc
+files[] = includes/EnomDomainController.inc
+files[] = includes/EnomServiceException.inc
 
+#dependencies[] = domains
 dependencies[] = wsclient
 dependencies[] = wsclient_rest
 dependencies[] = http_client

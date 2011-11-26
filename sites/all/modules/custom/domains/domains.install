@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Implements hook_schema()
+ */
+function domains_schema() {
+  $schema = array();
+  $schema['domain'] = array (
+    'description' => 'Domain entity storage table',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'Domain name.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE
+      ),
+      'uid' => array(
+        'description' => 'Domain owner user.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'expiration' => array(
+        'description' => 'Domain expiration time in GMT.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'controller' => array(
+        'description' => 'Domain Controller key.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'uid' => array('uid'),
+    ),
+    'primary key' => array('id'),
+  );
+  
+  return $schema;
+}

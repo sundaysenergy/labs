@@ -13,12 +13,13 @@
  * For KB KC Labs [http://labori.us]
  */
 
+module_load_include("inc", "enom", "enom.api");
+module_load_include("inc", "enom", "enom.wsclient");
+
 /**
  * Implements hook_init()
  */
 function enom_init() {
-  // TODO: figure out a better way to include api
-  module_load_include("inc", "enom", "enom.api");
 }
 
 /**
@@ -29,165 +30,29 @@ function enom_menu() {
   // Menu items to manage web service operations
   $items['enom'] = array(
     'title' => 'Enom Tests',
-    'page callback' => 'enom_page',
-    'access arguments' => array('administer web services'),
-  );
-
-  // Submit a form without a page reload.
-  $items['domain'] = array(
-    'title' => 'Register Domain',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('enom_register'),
-    'access callback' => TRUE,
-    'weight' => 3,
+    'file'  => 'enom.pages.inc',
+    'page callback'     => 'enom_page',
+    'access arguments'  => array('administer web services'),
   );
   return $items;
 }
 
 /**
- *
+ * Implements hook_permissions()
  */
-function enom_page() {
-  $args = array(
-    'sld' => 'example',
-    'tld' => 'com',
+function enom_perm() {
+  return array(
+    
   );
-  #$domains = enom_interface_command('check', $args);
-
-  #$service = wsclient_service_load('google');
-  #$domains = $service->translate('hello world', 'en|de');
-  
-  $r = enom_check('ookc.com');
-  #$r = enom_get_tlds();
-  
-  return kpr($r, TRUE);
 }
 
 /**
- * A very basic form which with an AJAX-enabled submit.
- *
- * On submit, the markup in the #markup element is updated.
+ * Implement hook_domains_controller_info()
  */
-function enom_register($form, &$form_state) {
-  #dpm($form_state);
-  $form['domain'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Domain Name'),
-    '#ajax' => array(
-      'callback' => 'enom_register_ajax_submit',
-      'wrapper' => 'results',
-      //'method' defaults to replaceWith, but valid values also include
-      // append, prepend, before and after.
-      // 'method' => 'replaceWith',
-      // 'effect' defaults to none. Other valid values are 'fade' and 'slide'.
-      // See ajax_example_autotextfields for an example of 'fade'.
-      'effect' => 'fade',
-      // 'speed' defaults to 'slow'. You can also use 'fast'
-      // or a number of milliseconds for the animation to last.
-      // 'speed' => 'slow',
-      // Don't show any throbber...
-      //'progress' => array('type' => 'none'),
+function enom_domains_controller_info() {
+  return array(
+    'enom' => array(
+      'class' => 'EnomDomainController',
     ),
   );
-  $form['domains'] = array(
-    '#type' => 'value',
-    '#value' => array(),
-  );
-
-  $form['results'] = array(
-    '#title' => t("Search Results"),
-    // The prefix/suffix provide the div that we're replacing, named by
-    // #ajax['wrapper'] above.
-    '#prefix' => '<div id="results">',
-    '#suffix' => '</div>',
-    '#type' => 'fieldset',
-    '#description' => t('This is where we get automatically generated checkboxes'),
-  );
-  $form['results']['purchase'] = array(
-    '#type'   => 'checkboxes',
-    '#title'  => t('Instant Purchase'),
-    '#options' => array(),
-  );
-  $form['results']['results_markup'] = array(
-    '#type' => 'markup',
-    '#markup' => 'Please search for a domain name.',
-  );
-
-  if (!empty($form_state['values']['domains'])) {
-    $domains = $form_state['values']['domains'];
-
-  }
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#ajax' => array(
-      'callback' => 'enom_register_ajax_submit',
-      'wrapper' => 'results',
-      'name' => 'submit1',
-    ),
-    '#value' => t('Submit'),
-  );
-
-  return $form;
-}
-
-/**
- * Custom validation form for the 'domain name check' page.
- *
- * @ingroup enom_register
- */
-function enom_register_validate($form, &$form_state) {
-  $domain = $form_state['values']['domain'];
-  if (!enom_validate($domain)) {
-    form_set_error('domain', t('Please enter a valid domain like example.com'));
-  }
-}
-
-/**
- * Select the 'box' element, change the markup in it, and return it as a
- * renderable array.
- *
- * @return renderable array (the box element)
- */
-function enom_register_ajax_submit($form, &$form_state) {
-  // In most cases, it is recomended that you put this logic in form generation
-  // rather than the callback. Submit driven forms are an exception, because
-  // you may not want to return the form at all.
-  $domains = enom_check($form_state['values']['domain']);
-  $buy_domains = array_filter($domains);
-  $form_state['values']['domains'] = array_combine($buy_domains, $buy_domains);
-  // Do check service
-
-  $element = $form['results']['results_markup'];
-  if (!$domains) {
-    $element['#markup'] = t('An error occurred. Please enter a valid url.  Example: example.com');
-  }
-  else {
-    $element['#markup'] = theme_result_list($domains);
-    $element = $form['results']['purchase'];
-    $element['#options'] = $form_state['values']['domains'];
-  }
-
-  return $element;
-}
-
-/**
- * @todo make a real theme function
- */
-function theme_result_list($results) {
-  $list = array();
-  foreach ($results as $domain => $available) {
-    if ($available) {
-      $status = t('is');
-      $class = array('notice', 'ok');
-    }
-    else {
-      $status = t('is NOT');
-      $class = array('error');
-    }
-    $tokens = array('@domain' => $domain, '@available' => $status);
-    $list[] = array('data' => t('@domain @available available.', $tokens), 'class' => $class);
-  }
-  $title = t('Search Results');
-  return theme('item_list', array('items' => $list, 'title' => $title));
 }
