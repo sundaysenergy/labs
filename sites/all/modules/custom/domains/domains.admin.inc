@@ -8,8 +8,7 @@ function domains_admin_config_page() {
 }
 
 /**
- *
- * @return type 
+ * Callback for page /admin/config/domains/manage.
  */
 function domain_info_page_callback() {
   return t('Welcome to the administration page for domains!');

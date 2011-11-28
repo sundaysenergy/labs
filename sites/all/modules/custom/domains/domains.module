@@ -15,7 +15,7 @@ function domains_menu() {
   $items['admin/config/domains'] = array(
     'title' => 'Domain',
     'description' => 'Manage domain',
-    'page callback' => 'domain_info',
+    'page callback' => 'domain_info_page_callback',
     'file' => 'domains.admin.inc',
     'access arguments' => array('administer domains'),
   );
