@@ -49,6 +49,6 @@ function domains_rules_action_info() {
  */
 function domains_action_domain_renew($domain) {
   // reload entity
-  $domain_entity = domain_load($domain->id);
+  $domain_entity = domains_domain_load($domain->id);
   domains_renew($domain_entity, 1);
 }

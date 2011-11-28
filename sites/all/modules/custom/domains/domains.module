@@ -3,7 +3,6 @@
 /**
  * @file
  * 
- * @TODO: Rename domain_* to domains_domain_*
  * @TODO: Views integration, use it for page /domain
  */
 
@@ -199,13 +198,13 @@ function domains_domain_uri($domain) {
   );
 }
 
-function domain_load($did = NULL, $reset = FALSE) {
+function domains_domain_load($did = NULL, $reset = FALSE) {
   $dids = (isset ($did) ? array($did) : array());
-  $domains = domain_load_multiple($dids, $reset);
+  $domains = domains_domain_load_multiple($dids, $reset);
   return $domains ? reset($domains) : FALSE;
 }
 
-function domain_load_multiple($dids = FALSE, $conditions = array(), $reset = FALSE) {
+function domains_domain_load_multiple($dids = FALSE, $conditions = array(), $reset = FALSE) {
   return entity_load('domain', $dids, $conditions, $reset);
 }
 

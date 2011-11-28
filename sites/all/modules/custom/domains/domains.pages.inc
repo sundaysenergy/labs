@@ -11,7 +11,7 @@
 function domains_dashboard_page() {
   global $user;
 
-  $results = domain_load_multiple(FALSE, array('uid' => $user->uid));
+  $results = domains_domain_load_multiple(FALSE, array('uid' => $user->uid));
   $domains = array();
 
   foreach ($results as $domain) {
