@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Theme functions for domains module.
+ */
+
+/**
  * Theme domains_result_list
  * Display form result from domain registration form
  */

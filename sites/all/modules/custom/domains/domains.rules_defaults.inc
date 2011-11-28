@@ -8,9 +8,6 @@
 /**
  * Implements hook_default_rules_configuration().
  */
-/**
- * Implements hook_default_rules_configuration().
- */
 function domains_default_rules_configuration() {
   $items = array();
   $items['rules_schedule_domain_expiration_reminder'] = entity_import('rules_config', '{ "rules_schedule_domain_expiration_reminder" : {

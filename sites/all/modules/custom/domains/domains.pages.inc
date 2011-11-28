@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Function to domains.module pages.
+ */
+
+/**
  * Domain dashboard menu callback.
  */
 function domains_dashboard_page() {
