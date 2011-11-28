@@ -51,11 +51,12 @@ function enom_error_check($response) {
  */
 function _enom_service() {
   $service = wsclient_service_load('enom');
-  $service->settings['formatter'] = new HttpClientINIFormatter();
-  #$service->settings['formatter'] = new HttpClientXMLFormatter();
+  $service->settings['formatter'] = new HttpClientINIFormatter(); # new HttpClientXMLFormatter();
   if ($proxy = variable_get('enom_proxy', FALSE)) {
     $service->settings['curl options'] = array(
       CURLOPT_PROXYPORT => variable_get('enom_proxy_port', 8888),
+      CURLOPT_HTTPPROXYTUNNEL => TRUE,
+      CURLOPT_PROXYTYPE => variable_get('enom_proxy_type', CURLPROXY_HTTP),
       CURLOPT_PROXY => $proxy,
     );
   }
