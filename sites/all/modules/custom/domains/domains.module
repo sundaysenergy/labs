@@ -4,6 +4,7 @@
  * @file
  * 
  * @TODO: Rename domain_* to domains_domain_*
+ * @TODO: Views integration, use it for page /domain
  */
 
 module_load_include('inc', 'domains');
