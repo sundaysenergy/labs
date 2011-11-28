@@ -30,7 +30,7 @@ function domains_menu() {
   );
 
   $items['domain/%domain'] = array(
-    'title callback' => 'domain_page_title',
+    'title callback' => 'domains_domain_page_title',
     'title arguments' => array(1),
     'file' => 'domains.pages.inc',
     'page callback' => 'domains_domain_page_view',
@@ -219,8 +219,14 @@ function domains_domain_save(&$domain) {
   return entity_get_controller('domain')->save($domain);
 }
 
-function domain_page_title($domain){
-  return $domain->name;
+/**
+ * Callback to return title of domain entity.
+ * 
+ * @param object $domain 
+ * @return string
+ */
+function domains_domain_page_title($domain) {
+  return check_plain($domain->name);
 }
 
 /**
