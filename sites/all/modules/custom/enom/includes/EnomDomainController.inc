@@ -91,16 +91,38 @@ class EnomDomainController implements DomainControllerInterface {
     return $tlds;
   }
 
+  public function getDomains($start = 1) {
+    $response = $this->invoke('GetDomains', array('start' => $start));
+    if (!$response['ErrCount']) {
+      $domains = $this->parseDomains($response);
+      if (!empty($response['NextRecords'])) {
+        $domains = array_merge($domains, $this->getDomains($response['NextRecords'])); 
+      }
+      return $domains;
+    }
+    return FALSE;
+  }
+
+  private function parseDomains($reponse) {
+    for ($i = 0; $i < $reponse['count']; ++$i) {
+      $domain = array();
+      foreach (array('DomainNameID', 'sld', 'tld', 'ns-status', 'expiration-date', 'auto-renew', 'wppsstatus', 'RRProcessor') as $k) {
+        $domain[$k] = $reponse[$k][$i];
+      }
+      $domains[] = $domain;
+    }
+    return $domains;
+  }
+
   /**
    * Invoke an Enom Service operation.
    */
-  protected function invoke($operation, $params=array(), $exception=TRUE) {
+  protected function invoke($operation, $params = array(), $exception = TRUE) {
     $service = _enom_service();
     $result = $service->invoke($operation, $params);
     if ($this->validateResponse($result, $exception)) {
       return $result;
     }
-
     return FALSE;
   }
 
@@ -113,10 +135,8 @@ class EnomDomainController implements DomainControllerInterface {
         // use a friendly message
         throw new DomainControllerException("Unable to perform request to Enom.", $errors);
       }
-
       return FALSE;
     }
-
     return TRUE;
   }
 }

@@ -20,7 +20,7 @@ function enom_interface_command($command, $args = array()) {
 
   if (empty($args['uid']) || empty($args['pw']) || empty($args['command'])) {
     //@TODO
-    return false;
+    return FALSE;
   }
 
   $enomhost = variable_get('enom_host', 'https://resellertest.enom.com/interface.asp');

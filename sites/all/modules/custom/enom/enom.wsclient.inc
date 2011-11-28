@@ -113,7 +113,14 @@ function enom_default_wsclient_service() {
   $service->operations['GetOrderDetail'] = $operation;
 
   // Operation: GetDomains
-  // TODO
+  $operation = array();
+  $operation['label'] = 'Get purchased domains';
+  $operation['parameter']['tab'] = array('type' => 'hidden', 'default value' => 'IOwn');
+  $operation['parameter']['display'] = array('type' => 'hidden', 'default value' => 25);
+  $operation['parameter']['start'] = array('type' => 'text', 'default value' => 1);
+  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'GetDomains');
+  $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
+  $service->operations['GetDomains'] = $operation;
   
   // Operation: GetDomainInfo
   $operation = array();

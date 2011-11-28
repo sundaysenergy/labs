@@ -11,27 +11,32 @@
  *
  * Code by Kai Curry [kai@sundaysenergy.com]
  * For KB KC Labs [http://labori.us]
+ * 
+ * @TODO: ???
+ *   variable_get('enom_user', 'sundaysenergy'),
+ *   variable_get('enom_pass', 'zola322'),
+ *   $service->settings['default']['uid'] = "sundaysenergy";
+ *   $service->settings['default']['pw'] = "zola322";
  */
 
 module_load_include("inc", "enom", "enom.api");
 module_load_include("inc", "enom", "enom.wsclient");
 
 /**
- * Implements hook_init()
- */
-function enom_init() {
-}
-
-/**
  * Implements hook_menu().
  */
 function enom_menu() {
-  $items = array();
   // Menu items to manage web service operations
   $items['enom'] = array(
     'title' => 'Enom Tests',
     'file'  => 'enom.pages.inc',
     'page callback'     => 'enom_page',
+    'access arguments'  => array('administer web services'),
+  );
+  $items['enom/domains'] = array(
+    'title' => 'Registered domains',
+    'file'  => 'enom.pages.inc',
+    'page callback'     => 'enom_domains_page_callback',
     'access arguments'  => array('administer web services'),
   );
   return $items;
@@ -41,9 +46,7 @@ function enom_menu() {
  * Implements hook_permissions()
  */
 function enom_perm() {
-  return array(
-    
-  );
+  return array();
 }
 
 /**

@@ -46,7 +46,8 @@ function enom_error_check($response) {
 }
 
 /**
- * Build up a basic service
+ * Build up a basic service.
+ * 
  * @return WSClientServiceDescription
  */
 function _enom_service() {
