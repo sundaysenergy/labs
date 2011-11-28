@@ -45,13 +45,14 @@ class HttpClientINIFormatter implements HttpClientFormatter {
     if (is_array($values)) {
       foreach ($values as $key => $val) {
         // the last character of the string
-        $last = substr($key, -1, 1);
+        $last = preg_replace('/[^0-9]*(\d+)$/', '$1', $key);
 
         // THIS IS CUSTOM UNSERIALIZE BEHAVIOR
         // add all values of keys that end in a number into a single key with array value
         if (is_numeric($last)) {
           // make multi vals into array instead
-          $main_key = substr($key, 0, -1);
+          $main_key = substr($key, 0, -1 * strlen($last));
+
           // add key and make it an array with value
           if (!isset($values[$main_key])) {
             $values[$main_key] = array($val);
@@ -84,8 +85,8 @@ class HttpClientINIFormatter implements HttpClientFormatter {
   }
 }
 
-if(!function_exists('parse_ini_string')){
-  function parse_ini_string($str, $ProcessSections=false){
+if (!function_exists('parse_ini_string')) {
+  function parse_ini_string($str, $ProcessSections=false) {
       $lines  = explode("\n", $str);
       $return = Array();
       $inSect = false;
