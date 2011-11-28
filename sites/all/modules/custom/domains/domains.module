@@ -198,17 +198,23 @@ function domains_domain_uri($domain) {
   );
 }
 
-function domain_load($did = NULL, $reset = FALSE){
+function domain_load($did = NULL, $reset = FALSE) {
   $dids = (isset ($did) ? array($did) : array());
   $domains = domain_load_multiple($dids, $reset);
   return $domains ? reset($domains) : FALSE;
 }
 
-function domain_load_multiple($dids = FALSE, $conditions = array(), $reset = FALSE){
+function domain_load_multiple($dids = FALSE, $conditions = array(), $reset = FALSE) {
   return entity_load('domain', $dids, $conditions, $reset);
 }
 
-function domain_save(&$domain) {
+/**
+ * API function to save domain entity.
+ * 
+ * @param object $domain Domain entity to save.
+ * @return object Saved domain entity.
+ */
+function domains_domain_save(&$domain) {
   return entity_get_controller('domain')->save($domain);
 }
 
@@ -329,7 +335,7 @@ function domain_add_form_submit($form, &$form_state) {
 
   $domain = (object) $form_state['values'];
   field_attach_submit('domain', $domain, $form, $form_state);
-  domain_save($domain);
+  domains_domain_save($domain);
 
   $form_state['redirect'] = "domain/{$domain->id}";
 }

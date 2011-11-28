@@ -156,7 +156,7 @@ function domains_refresh($domain, $save=TRUE) {
     if ($domain_info) {
       $domain->expiration = $domain_info['expiration'];
       if ($save) {
-        domain_save($domain);
+        domains_domain_save($domain);
       }
       return TRUE;
     }
