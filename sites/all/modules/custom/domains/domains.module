@@ -232,7 +232,7 @@ function domains_domain_page_title($domain) {
 /**
  * Callback for getting domain properties.
  */
-function domain_get_properties($domain, array $options, $name) {
+function domains_domain_get_properties($domain, array $options, $name) {
   switch ($name) {
     case 'creator':
       return $domain->uid;
@@ -242,9 +242,10 @@ function domain_get_properties($domain, array $options, $name) {
 /**
  * Call back for setting properties of domain
  */
-function domain_set_properties($domain, $name, $value) {
-  if ($name == 'creator') {
-    $domain->uid = $value;
+function domains_domain_set_properties($domain, $name, $value) {
+  switch ($name) {
+    case 'creator':
+      $domain->uid = $value;
+      break;
   }
 }
-
