@@ -23,7 +23,8 @@ function domains_menu() {
   $items['admin/config/domains/manage'] = array(
     'title' => 'Domain Entity',
     'description' => 'Manage domain entity',
-    'page callback' => 'domain_info',
+    'file' => 'domains.admin.inc',
+    'page callback' => 'domain_info_page_callback',
     'access arguments' => array('administer domains'),
   );
 
@@ -184,10 +185,6 @@ function domains_field_extra_fields() {
   );
 
   return $return;
-}
-
-function domain_info() {
-  return t('Welcome to the administration page for domains!');
 }
 
 function domain_uri($domain) {
