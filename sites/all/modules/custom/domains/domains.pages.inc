@@ -258,3 +258,13 @@ function domains_renew_form_submit($form, $form_state) {
     drupal_set_message(t('There was an error while renewing your domain. Please try again later.'), 'error');
   }
 }
+
+/**
+ *
+ * @param type $domain
+ * @param type $view_mode
+ * @return type 
+ */
+function domains_domain_page_view($domain, $view_mode = 'full'){
+  return entity_build_content('domain', $domain, $view_mode);
+}

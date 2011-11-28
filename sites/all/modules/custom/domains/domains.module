@@ -32,7 +32,8 @@ function domains_menu() {
   $items['domain/%domain'] = array(
     'title callback' => 'domain_page_title',
     'title arguments' => array(1),
-    'page callback' => 'domain_page_view',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'domains_domain_page_view',
     'page arguments' => array(1),
     'access arguments' => array('view domains'),
   );
@@ -210,10 +211,6 @@ function domain_save(&$domain) {
 
 function domain_page_title($domain){
   return $domain->name;
-}
-
-function domain_page_view($domain, $view_mode = 'full'){
-  return entity_build_content('domain', $domain, $view_mode);
 }
 
 /**
