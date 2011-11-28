@@ -129,7 +129,7 @@ function domains_entity_info() {
     'metadata controller class' => '',
     'base table' => 'domain',
     'modules' => 'domains',
-    'uri callback' => 'domain_uri',
+    'uri callback' => 'domains_domain_uri',
     'fieldable' => TRUE,
     'entity keys' => array(
       'id' => 'id',
@@ -189,7 +189,10 @@ function domains_field_extra_fields() {
   return $return;
 }
 
-function domain_uri($domain) {
+/**
+ * URI callback for domain Entity.
+ */
+function domains_domain_uri($domain) {
   return array(
     'path' => 'domain/' . $domain->id,
   );
@@ -198,7 +201,7 @@ function domain_uri($domain) {
 function domain_load($did = NULL, $reset = FALSE){
   $dids = (isset ($did) ? array($did) : array());
   $domains = domain_load_multiple($dids, $reset);
-  return $domains ? reset ($domains) : FALSE;
+  return $domains ? reset($domains) : FALSE;
 }
 
 function domain_load_multiple($dids = FALSE, $conditions = array(), $reset = FALSE){
