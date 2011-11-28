@@ -269,3 +269,104 @@ function domains_renew_form_submit($form, $form_state) {
 function domains_domain_page_view($domain, $view_mode = 'full') {
   return entity_build_content('domain', $domain, $view_mode);
 }
+
+/**
+ * Add domain menu callback
+ */
+function domains_domain_add_callback() {
+  $domain = (object) array (
+    'id' => '',
+    'type' => 'domain',
+    'note' => '',
+  );
+
+  return drupal_get_form('domain_add_form', $domain);
+}
+
+/**
+ * Add domain form
+ */
+function domain_add_form($form, &$form_state, $domain) {
+  global $user;
+
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#required' => TRUE,
+  );
+
+  $form['uid'] = array(
+    '#type' => 'value',
+    '#default_value' => $user->uid,
+  );
+  
+  $form['controller'] = array(
+    '#type' => 'value',
+    '#default_value' => '',
+  );
+
+  $form['expiration'] = array(
+    '#type' => 'value',
+    '#default_value' => '',
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  field_attach_form('domain', $domain, $form, $form_state);
+  return $form;
+}
+
+/**
+ * Add domain validate callback
+ */
+function domain_add_form_validate($form, &$form_state) {
+  $form_state['values']['name'] = strtolower($form_state['values']['name']);
+  $domain = $form_state['values']['name']; 
+
+  // Validate domain name across system and provider
+  if (!domains_validate_name($domain, FALSE)) {
+    form_set_error('name', t('Please enter a valid domain like example.com'));
+  }
+  else {
+    if (count(entity_load('domain', FALSE, array('name' => $domain)))) {
+      form_set_error('name', t('Domain @domain already existed in the system.', array('@domain' => $domain)));
+    }
+    else {
+      $info = domains_find_domain($form_state['values']['name']);
+
+      if ($info === FALSE) {
+        form_set_error('name', t('Unable to validate your domain name.'));
+      }
+      else if (count($info)) {
+        // Use the first provider for now.
+        foreach ($info as $controller => $domain_info) {
+          $form_state['values']['controller'] = $controller;
+          $form_state['values']['expiration'] = $domain_info['expiration'];
+          break;
+        }
+      }
+      else {
+        form_set_error('name', t('Domain @domain is not registered with any provider. Please use domain register form to regsiter new domain.', array('@domain' => $domain)));
+      }
+    }
+  }
+
+  $domain_submisttion = (object) $form_state['values'];
+  field_attach_form_validate('domain', $domain_submisttion, $form, $form_state);
+}
+
+/**
+ * Domain add form callback 
+ */
+function domain_add_form_submit($form, &$form_state) {
+  global $user;
+
+  $domain = (object) $form_state['values'];
+  field_attach_submit('domain', $domain, $form, $form_state);
+  domains_domain_save($domain);
+
+  $form_state['redirect'] = "domain/{$domain->id}";
+}
