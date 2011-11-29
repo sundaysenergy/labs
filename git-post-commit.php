@@ -10,17 +10,18 @@ define('CAMP_TOKEN', 'a3241be299ce1b45b2d5c1d2cb0752abed896ee0');
 define('CAMP_PW', 'cc2de8a01a7c5d662');
 //To get room_id, login to your CF room and look in the address bar (after /room)
 define('CAMP_RM', 435558); // Room ID
+// callback domain as set in unfuddle
+define('DOMAIN', 'labori.us');
 
-$master_server = 'www.acfdev.com';
 $other_servers = array();
 
 $file_name = '/git-post-commit.php';
 $request = $HTTP_RAW_POST_DATA;
 $paste = array();
 
-$revision = $author = $message = $repo = 'n/a';
+$revision = $author = $message = $repo = FALSE;
 if ($request) {
-  if ($master_server == $_SERVER['SERVER_NAME'] && !empty($other_servers)) {
+  if (DOMAIN == $_SERVER['SERVER_NAME'] && !empty($other_servers)) {
     foreach ($other_servers as $server_name) {
       $url = $server_name . $file_name;
       $ch = curl_init();
@@ -59,41 +60,41 @@ if ($request) {
   $reader->close();
 }
 
-$git = 'pull ' . GIT_BRANCH;
-$paste[$git] = exec('/usr/bin/git pull');
-if (!$paste['pull master'] || !is_string($paste[$git])) {
-  $paste['pull master'] = 'NO GIT Response';
-}
+$unfuddle_url = 'https://' . UNF_SUBDOMAIN . '.unfuddle.com/a#/projects/' . UNF_PID;
 //$paste['globals'] = print_r($GLOBALS, true);
+$paste['pull'] = exec('/usr/bin/git pull');
+if (!$paste['pull'] || !is_string($paste['pull'])) {
+  $paste['pull'] = 'NO GIT Response';
+}
 if ($author && is_string($author)) {
   $paste['author'] = $author;
 }
-if ($revision && is_string($revision)) {
-  $paste['revision'] = $revision;
-}
 if ($message && is_string($message)) {
-  $paste['message'] = $message;
+  $paste['msg'] = $message;
+}
+if ($revision && is_string($revision)) {
+  $paste['rev'] = $unfuddle_url . '/repositories/' . UNF_RID . '/commit?commit=' . $revision;
 }
 
-$url = 'https://' . CAMP_SUBDOMAIN . '.campfirenow.com';	// Use full URL, http://[account].campfirenow.com
-$repo_l = ' https://' . UNF_SUBDOMAIN . '.unfuddle.com/a#/projects/' . UNF_PID . '/repositories/' . UNF_RID . '/commit?commit=' . $revision;
-
+// Use full URL, http://[account].campfirenow.com
+$url = 'https://' . CAMP_SUBDOMAIN . '.campfirenow.com';
 $icecube = new icecube($url, CAMP_TOKEN);
 //$icecube->joinRoom($room_id);
 //$icecube->leaveRoom($room_id);
-$say = $author . " commit: '" . $message . "'";
-$say2 = ' Site status: ' . $paste['pull master'];
-$icecube->speak($say . $repo_l . $say2, CAMP_RM);
+
+$say = implode(' ', $paste);
+$icecube->speak($say, CAMP_RM);
 // $icecube->speak($say2, $room_acf);
 // $icecube->speak(print_r($paste, TRUE), $room_dev, TRUE);
 // $icecube->speak($say . $repo_l . $say2, $room_se);
 // $icecube->speak($say2, $room_se);
 
+// Write this to our log file.
 $fh = fopen("gitpull.txt", 'a') or die("can't open file");
-fwrite($fh, print_r($paste, TRUE));
+fwrite($fh, $say);
 fclose($fh);
 
-echo $paste['pull master'];
+echo $paste['pull'];
 
 /**
  * Ice Cube - Campfire API for PHP
