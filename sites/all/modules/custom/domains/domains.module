@@ -6,6 +6,8 @@
  * @TODO: Views integration, use it for page /domain
  */
 
+define('DOMAINS_ADMIN_URL', 'admin/config/domains');
+
 module_load_include('inc', 'domains');
 
 /**
@@ -28,7 +30,24 @@ function domains_menu() {
     'access arguments' => array('administer domains'),
   );
 
-  $items['domain/%domain'] = array(
+  $items['admin/config/domains/providers'] = array(
+    'title' => 'Providers',
+    'description' => 'Manage domain providers',
+    'page callback' => 'domains_admin_providers',
+    'access arguments' => array('administer domain providers'),
+    'file' => 'domains.admin.inc',
+  );
+
+  $items['admin/config/domains/providers/%/config'] = array(
+    'title' => 'Configure provider',
+    'page callback' => 'domains_admin_provider_config',
+    'page arguments' => array(4),
+    'access arguments' => array('administer domain providers'),
+    'file' => 'domains.admin.inc',
+    'type' => MENU_CALLBACK
+  );
+
+  $items['domain/%domains_domain'] = array(
     'title callback' => 'domains_domain_page_title',
     'title arguments' => array(1),
     'file' => 'domains.pages.inc',
@@ -36,12 +55,20 @@ function domains_menu() {
     'page arguments' => array(1),
     'access arguments' => array('view domains'),
   );
-  $items['domain/%domain/view'] = array(
+  $items['domain/%domains_domain/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
-  $items['domain/%domain/renew'] = array(
+  $items['domain/%domains_domain/whois'] = array(
+    'title' => 'Whois',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('domains_whois_form', 1),
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['domain/%domains_domain/renew'] = array(
     'title' => 'Renew',
     'file' => 'domains.pages.inc',
     'page callback' => 'drupal_get_form',
@@ -73,7 +100,7 @@ function domains_menu() {
     'page callback'   => 'drupal_get_form',
     'page arguments'  => array('domains_register_form'),
     'access callback' => TRUE,
-    'type' => MENU_LOCAL_ACTION,
+    'type' => MENU_NORMAL_ITEM,
   );
 
   // batch process checked domains for registration form
@@ -94,8 +121,12 @@ function domains_menu() {
 function domains_permission() {
   return array(
     'administer domains' => array(
-      'title' => t('Administer domain'),
+      'title' => t('Administer domains'),
       'description' => 'Perform administration tasks for domain entity.',
+    ),
+    'administer domain providers' => array(
+      'title' => t('Administer domain providers'),
+      'description' => t('Perform administration tasks for domain provider.'),
     ),
     'view domains' => array(
       'title' => t('View Domains'),
@@ -122,7 +153,7 @@ function domains_theme() {
  * Implements hook_entity_info()
  */
 function domains_entity_info() {
-  $info['domain'] = array(
+  $info['domains_domain'] = array(
     'label' => t('Domain'),
     'entity class' => 'DomainEntity',
     'controller class' => 'DomainEntityController',
@@ -159,7 +190,7 @@ function domains_entity_info() {
  * Implements hook_field_extra_fields()
  */
 function domains_field_extra_fields() {
-  $return['domain']['domain'] = array(
+  $return['domains_domain']['domain'] = array(
     'form' => array(
       'name' => array(
         'label' => t('Domain Name'),
@@ -205,7 +236,7 @@ function domains_domain_load($did = NULL, $reset = FALSE) {
 }
 
 function domains_domain_load_multiple($dids = FALSE, $conditions = array(), $reset = FALSE) {
-  return entity_load('domain', $dids, $conditions, $reset);
+  return entity_load('domains_domain', $dids, $conditions, $reset);
 }
 
 /**
@@ -215,7 +246,7 @@ function domains_domain_load_multiple($dids = FALSE, $conditions = array(), $res
  * @return object Saved domain entity.
  */
 function domains_domain_save(&$domain) {
-  return entity_get_controller('domain')->save($domain);
+  return entity_get_controller('domains_domain')->save($domain);
 }
 
 /**

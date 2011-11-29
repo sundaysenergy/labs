@@ -12,7 +12,7 @@ function domains_entity_property_info() {
   $info = array();
 
   // Add meta-data about the basic domain properties.
-  $properties = &$info['domain']['properties'];
+  $properties = &$info['domains_domain']['properties'];
 
   $properties['id'] = array(
     'label' => t('Domain ID'),

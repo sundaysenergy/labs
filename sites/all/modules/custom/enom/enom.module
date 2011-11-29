@@ -23,9 +23,16 @@ module_load_include("inc", "enom", "enom.api");
 module_load_include("inc", "enom", "enom.wsclient");
 
 /**
+ * Implements hook_init()
+ */
+function enom_init() {
+}
+
+/**
  * Implements hook_menu().
  */
 function enom_menu() {
+  $items = array();
   // Menu items to manage web service operations
   $items['enom'] = array(
     'title' => 'Enom Tests',
@@ -50,12 +57,14 @@ function enom_perm() {
 }
 
 /**
- * Implement hook_domains_controller_info()
+ * Implement hook_domains_provider_info()
  */
-function enom_domains_controller_info() {
+function enom_domains_provider_info() {
   return array(
     'enom' => array(
-      'class' => 'EnomDomainController',
+      'label' => t('Enom'),
+      'class' => 'EnomDomainProvider',
+      'ui class' => 'EnomDomainProviderUi',
     ),
   );
 }

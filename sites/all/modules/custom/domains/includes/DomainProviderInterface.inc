@@ -3,7 +3,7 @@
 /**
  * Domain controller api interface
  */
-interface DomainControllerInterface {
+interface DomainProviderInterface {
 
   /**
    * Check a list of domains for its avaiability
@@ -17,7 +17,20 @@ interface DomainControllerInterface {
    * @param string $domain
    * @return array
    */
-  public function getInfo($domain);
+  public function query($domain, $options=array());
+
+  /**
+   * Get whois information for a domain
+   * @param string $domain
+   */
+  public function getWhois($domain);
+
+  /**
+   * Update whois information for a domain
+   * @param string $domain
+   * @param array $whois
+   */
+  public function updateWhois($domain, $whois);
 
   /**
    * Renew a domain
@@ -38,31 +51,16 @@ interface DomainControllerInterface {
    * @return array
    */
   public function getTLDs();
-}
-
-
-/**
- * Domain controller exception class.
- */
-class DomainControllerException extends Exception {
 
   /**
-   * Additional errors info
-   * @var array
+   * Get UI controller
+   * @return DomainProviderUI
    */
-  protected $errors = array();
+  public function getUiController();
 
   /**
-   * Constructor
-   * @param $message General error message
-   * @param $errors Additional error array
+   * Get provider info
+   * @return array
    */
-  public function __construct($message, $errors=array()) {
-    parent::__construct($message);
-    $this->errors = $errors;
-  }
-
-  public function getAdditionalErrors() {
-    return $this->errors;
-  }
+  public function getInfo();
 }

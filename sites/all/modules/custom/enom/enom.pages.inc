@@ -20,22 +20,21 @@ function enom_page() {
   );
   #$domains = enom_interface_command('check', $args);
   
-  #$p = domains_get_controller('enom')->check(array('randomtimeabcd.com', 'defghijklmn123.net'));
-  #$p = domains_get_controller('enom')->getTLDs();
-  $p = domains_get_controller('enom')->renew('randomtimeabcd.com');
+  #$p = domains_get_provider('enom')->check(array('randomtimeabcd.com', 'defghijklmn123.net'));
+  #$p = domains_get_provider('enom')->getTLDs();
+  $p = domains_get_provider('enom')->invoke('GetAllAccountInfo');
   #$s = _enom_service();
   #$p = $s->invoke("GetOrderDetail", array('orderid' => '157771821'));
   
   return kpr($p, TRUE);
 }
-
 /**
  * Callback for /enom/domains
  * 
  * Page to list registed domain from enom.
  */
 function enom_domains_page_callback() {
-  $domains = domains_get_controller('enom')->getDomains();
+  $domains = domains_get_provider('enom')->getDomains();
   if ($domains) {
     $header = array();
     foreach ($domains as $domain) {

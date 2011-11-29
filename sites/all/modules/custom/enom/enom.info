@@ -5,8 +5,8 @@ package = Services - clients
 
 files[] = includes/HttpClientINIFormatter.inc
 files[] = includes/EnomWSClientRESTEndpoint.inc
-files[] = includes/EnomDomainController.inc
-files[] = includes/EnomServiceException.inc
+files[] = includes/EnomDomainProvider.inc
+files[] = includes/EnomDomainProviderUi.inc
 
 dependencies[] = domains
 dependencies[] = wsclient
@@ -14,7 +14,4 @@ dependencies[] = wsclient_rest
 dependencies[] = http_client
 dependencies[] = rules
 
-; class HttpClientINIFormatter uses parse_ini_string()
-php = 5.3
-
-configure = admin/config/enom/settings
+configure = admin/config/domains/provder/enom/config

@@ -97,14 +97,14 @@ function domains_check($domains) {
 
     try {
       foreach ($api_call as $name => $check_domains) {
-        foreach (domains_get_controller($name)->check($check_domains) as $domain => $avai) {
+        foreach (domains_get_provider($name)->check($check_domains) as $domain => $avai) {
           if ($avai) {
             $result[$domain][] = $name;
           }
         }
       }
     }
-    catch (DomainControllerException $ex) {
+    catch (Exception $ex) {
       _domains_handle_exception($ex);
       $result = FALSE;
     }
@@ -123,18 +123,18 @@ function domains_check($domains) {
  */
 function domains_find_domain($domain) {
   $result = array();
-  $all_info = domains_get_controllers();
+  $all_info = domains_get_providers();
 
   try {
     foreach ($all_info as $name => $info) {
-      $domain_info = domains_get_controller($name)->getInfo($domain);
+      $domain_info = domains_get_provider($name)->query($domain);
 
       if (NULL !== $domain_info) {
         $result[$name] = $domain_info;
       }
     }
   }
-  catch (DomainControllerException $ex) {
+  catch (Exception $ex) {
     _domains_handle_exception($ex);
     $result = FALSE;
   }
@@ -151,7 +151,7 @@ function domains_find_domain($domain) {
 function domains_refresh($domain, $save=TRUE) {
   try {
     // update domain entity
-    $domain_info = domains_get_controller($domain->controller)->getInfo($domain->name);
+    $domain_info = domains_get_provider($domain->controller)->query($domain->name);
 
     if ($domain_info) {
       $domain->expiration = $domain_info['expiration'];
@@ -161,7 +161,7 @@ function domains_refresh($domain, $save=TRUE) {
       return TRUE;
     }
   }
-  catch (DomainControllerException $ex) {
+  catch (Exception $ex) {
     _domains_handle_exception($ex);
   }
 
@@ -182,11 +182,56 @@ function domains_renew($domain, $years=1) {
       }
     }
   }
-  catch (DomainControllerException $ex) {
+  catch (Exception $ex) {
     _domains_handle_exception($ex);
   }
 
   return FALSE;
+}
+
+/**
+ * Get domain whois information
+ * @param DomainEntity $domain
+ * @return array
+ */
+function domains_whois($domain) {
+  try {
+    $provider = domains_get_provider($domain->controller);
+    return $provider->getWhois($domain->name);
+  }
+  catch (Exception $ex) {
+    _domains_handle_exception($ex);
+  }
+
+  return FALSE;
+}
+
+/**
+ * Update domain whois information
+ */
+function domains_update_whois($domain, $whois) {
+  try {
+    $provider = domains_get_provider($domain->controller);
+    return $provider->updateWhois($domain->name, $whois);
+  }
+  catch (Exception $ex) {
+    _domains_handle_exception($ex);
+  }
+
+  return FALSE;
+}
+
+/**
+ * Get known whois types
+ * @return array
+ */
+function domains_whois_types() {
+  return array(
+    'registrant' => t('Registrant Contact'),
+    'admin' => t('Administrative Contact'),
+    'technical' => t('Technical Contact'),
+    'billing' => t('Billing Contact'),
+  );
 }
 
 /**
@@ -207,14 +252,14 @@ function domains_purchase($domain, $controller, $owner_uid=NULL) {
   );
 
   try {
-    if (domains_get_controller($controller)->purchase($entity->name)) {
+    if (domains_get_provider($controller)->purchase($entity->name)) {
       if (domains_refresh($entity)) {
         rules_invoke_event('domain_purchase', $entity);
         return $entity;
       }
     }
   }
-  catch (DomainControllerException $ex) {
+  catch (Exception $ex) {
     _domains_handle_exception($ex);
   }
 
@@ -234,9 +279,9 @@ function domains_get_tlds($name_only=FALSE, $reset=FALSE) {
     $cache = cache_get('domains_tlds', 'cache');
     if (!$cache || $reset) {
       try {
-        $all_info = domains_get_controllers();
+        $all_info = domains_get_providers();
         foreach ($all_info as $name => $info) {
-          $controller = domains_get_controller($name);
+          $controller = domains_get_provider($name);
   
           $tlds = (array)$controller->getTLDs();
 
@@ -245,7 +290,7 @@ function domains_get_tlds($name_only=FALSE, $reset=FALSE) {
           }
         }
       }
-      catch (DomainControllerException $ex) {
+      catch (Exception $ex) {
         _domains_handle_exception($ex);
         $all_tlds = array();
       }
@@ -264,20 +309,20 @@ function domains_get_tlds($name_only=FALSE, $reset=FALSE) {
 }
 
 /**
- * Get domain controller object
+ * Get domain provider object
  * @param string $name
- * @return DomainControllerInterface
+ * @return DomainProviderInterface
  */
-function domains_get_controller($name) {
+function domains_get_provider($name) {
   $objects =& drupal_static(__FUNCTION__);
 
   // lazy constructor
   if (empty($objects[$name])) {
-    $info = domains_get_controllers($name);
+    $info = domains_get_providers($name);
 
     if ($info) {
       $class = $info['class'];
-      $objects[$name] = new $class;
+      $objects[$name] = new $class($info);
     }
     else {
       return FALSE;
@@ -291,14 +336,14 @@ function domains_get_controller($name) {
  * Get domain controller info
  * @return array
  */
-function domains_get_controllers($name=NULL) {
+function domains_get_providers($name=NULL) {
   $controllers =& drupal_static(__FUNCTION__);
 
   if ($controllers === NULL) {
     $controllers = array();
 
-    foreach (module_implements('domains_controller_info') as $module) {
-      $hook_function = "{$module}_domains_controller_info";
+    foreach (module_implements('domains_provider_info') as $module) {
+      $hook_function = "{$module}_domains_provider_info";
 
       $controllers += $hook_function();
     }
@@ -320,7 +365,7 @@ function _domains_handle_exception($exception) {
   // TODO: and log them
   drupal_set_message($exception->getMessage(), 'error');
   
-  if ($exception instanceof DomainControllerException) {
+  if ($exception instanceof DomainProviderException) {
     foreach ($exception->getAdditionalErrors() as $error) {
       drupal_set_message($error, 'error');
     }
