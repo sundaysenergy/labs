@@ -60,12 +60,14 @@ if ($request) {
   $reader->close();
 }
 
-$unfuddle_url = 'https://' . UNF_SUBDOMAIN . '.unfuddle.com/a#/projects/' . UNF_PID;
 //$paste['globals'] = print_r($GLOBALS, true);
-$paste['pull'] = exec('/usr/bin/git pull');
-if (!$paste['pull'] || !is_string($paste['pull'])) {
-  $paste['pull'] = 'NO GIT Response';
+
+$pull = exec('/usr/bin/git pull');
+if (!$pull || !is_string($pull)) {
+  $pull = 'NO GIT Response';
 }
+$paste['pull'] = '* ' . $pull . ' *';
+
 if ($author && is_string($author)) {
   $paste['author'] = $author;
 }
@@ -73,6 +75,7 @@ if ($message && is_string($message)) {
   $paste['msg'] = $message;
 }
 if ($revision && is_string($revision)) {
+  $unfuddle_url = 'https://' . UNF_SUBDOMAIN . '.unfuddle.com/a#/projects/' . UNF_PID;
   $paste['rev'] = $unfuddle_url . '/repositories/' . UNF_RID . '/commit?commit=' . $revision;
 }
 
@@ -82,12 +85,8 @@ $icecube = new icecube($url, CAMP_TOKEN);
 //$icecube->joinRoom($room_id);
 //$icecube->leaveRoom($room_id);
 
-$say = implode(' ', $paste);
+$say = implode(' : ', $paste);
 $icecube->speak($say, CAMP_RM);
-// $icecube->speak($say2, $room_acf);
-// $icecube->speak(print_r($paste, TRUE), $room_dev, TRUE);
-// $icecube->speak($say . $repo_l . $say2, $room_se);
-// $icecube->speak($say2, $room_se);
 
 // Write this to our log file.
 $fh = fopen("gitpull.txt", 'a') or die("can't open file");

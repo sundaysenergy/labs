@@ -86,7 +86,7 @@ function domains_menu() {
 
   // domain management dashboard
   $items['domain'] = array(
-    'title' => 'Manage Domain',
+    'title' => 'Manage Your Domains',
     'file' => 'domains.pages.inc',
     'page callback' => 'domains_dashboard_page',
     'access callback' => TRUE,
@@ -95,7 +95,7 @@ function domains_menu() {
 
   // Submit a form without a page reload.
   $items['domain/register'] = array(
-    'title'   => 'Register Domain',
+    'title'   => 'Register A Domain',
     'file'    => 'domains.pages.inc',
     'page callback'   => 'drupal_get_form',
     'page arguments'  => array('domains_register_form'),
@@ -105,7 +105,7 @@ function domains_menu() {
 
   // batch process checked domains for registration form
   $items['domain/register/process'] = array(
-    'title' => 'Register Domain',
+    'title' => 'Register A Domain',
     'file' => 'domains.pages.inc',
     'page callback' => 'domains_register_process_page',
     'access callback' => TRUE,
