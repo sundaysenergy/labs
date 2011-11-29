@@ -15,14 +15,14 @@ function domains_rules_event_info() {
       'label' => t('After purchasing a domain'),
       'group' => t('Domain'),
       'variables' => array(
-        'domain' => array('type' => 'domain', 'label' => t('Target Domain')),
+        'domain' => array('type' => 'domains_domain', 'label' => t('Target Domain')),
       ),
     ),
     'domain_renew' => array(
       'label' => t('After renewing a domain'),
       'group' => t('Domain'),
       'variables' => array(
-        'domain' => array('type' => 'domain', 'label' => t('Target Domain')),
+        'domain' => array('type' => 'domains_domain', 'label' => t('Target Domain')),
       ),
     ),
   );
@@ -36,7 +36,7 @@ function domains_rules_action_info() {
     'domain_renew' => array(
       'label' => t('Renew a domain'),
       'parameter' => array(
-        'domain' => array('type' => 'domain', 'label' => t('Domain')),
+        'domain' => array('type' => 'domains_domain', 'label' => t('Domain')),
       ),
       'group' => t('Domain'),
       'base' => 'domains_action_domain_renew',

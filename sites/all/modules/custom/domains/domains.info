@@ -4,7 +4,9 @@ core = 7.x
 
 files[] = includes/DomainEntityController.inc
 files[] = includes/DomainEntity.inc
-files[] = includes/DomainControllerInterface.inc
+files[] = includes/DomainProviderInterface.inc
+files[] = includes/DomainProvider.inc
+files[] = includes/DomainProviderUi.inc
 
 dependencies[] = entity
 dependencies[] = ctools

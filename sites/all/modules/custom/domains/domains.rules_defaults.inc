@@ -32,7 +32,7 @@ function domains_default_rules_configuration() {
       "PLUGIN" : "action set",
       "TAGS" : [ "domains" ],
       "REQUIRES" : [ "rules" ],
-      "USES VARIABLES" : { "domain" : { "label" : "Domain", "type" : "domain" } },
+      "USES VARIABLES" : { "domain" : { "label" : "Domain", "type" : "domains_domain" } },
       "ACTION SET" : [
         { "mail" : {
             "to" : "[domain:creator:mail]",

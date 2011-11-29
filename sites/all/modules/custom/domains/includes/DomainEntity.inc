@@ -37,9 +37,9 @@ class DomainEntity extends Entity {
 
   /**
    * Get domain controller object
-   * @return DomainControllerInterface
+   * @return DomainProviderInterface
    */
   public function getController() {
-    return domains_get_controller($this->controller);
+    return domains_get_provider($this->controller);
   }
 }

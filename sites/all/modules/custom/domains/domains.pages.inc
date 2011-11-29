@@ -29,6 +29,118 @@ function domains_register_process_page() {
 }
 
 /**
+ * Callback for domain page view.
+ * 
+ * @param type $domain
+ * @param type $view_mode
+ * @return type 
+ */
+function domains_domain_page_view($domain, $view_mode = 'full') {
+  return entity_build_content('domains_domain', $domain, $view_mode);
+}
+
+/**
+ * Add domain menu callback
+ */
+function domains_domain_add_callback() {
+  $domain = (object) array (
+    'id' => '',
+    'type' => 'domains_domain',
+    'note' => '',
+  );
+
+  return drupal_get_form('domain_add_form', $domain);
+}
+
+/**
+ * Add domain form
+ */
+function domain_add_form($form, &$form_state, $domain) {
+  global $user;
+
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#required' => TRUE,
+  );
+
+  $form['uid'] = array(
+    '#type' => 'value',
+    '#default_value' => $user->uid,
+  );
+  
+  $form['controller'] = array(
+    '#type' => 'value',
+    '#default_value' => '',
+  );
+
+  $form['expiration'] = array(
+    '#type' => 'value',
+    '#default_value' => '',
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  field_attach_form('domains_domain', $domain, $form, $form_state);
+  return $form;
+}
+
+/**
+ * Add domain validate callback
+ */
+function domain_add_form_validate($form, &$form_state) {
+  $form_state['values']['name'] = strtolower($form_state['values']['name']);
+  $domain = $form_state['values']['name']; 
+
+  // Validate domain name across system and provider
+  if (!domains_validate_name($domain, FALSE)) {
+    form_set_error('name', t('Please enter a valid domain like example.com'));
+  }
+  else {
+    if (count(entity_load('domains_domain', FALSE, array('name' => $domain)))) {
+      form_set_error('name', t('Domain @domain already existed in the system.', array('@domain' => $domain)));
+    }
+    else {
+      $info = domains_find_domain($form_state['values']['name']);
+
+      if ($info === FALSE) {
+        form_set_error('name', t('Unable to validate your domain name.'));
+      }
+      else if (count($info)) {
+        // Use the first provider for now.
+        foreach ($info as $controller => $domain_info) {
+          $form_state['values']['controller'] = $controller;
+          $form_state['values']['expiration'] = $domain_info['expiration'];
+          break;
+        }
+      }
+      else {
+        form_set_error('name', t('Domain @domain is not registered with any provider. Please use domain register form to regsiter new domain.', array('@domain' => $domain)));
+      }
+    }
+  }
+
+  $domain_submisttion = (object) $form_state['values'];
+  field_attach_form_validate('domains_domain', $domain_submisttion, $form, $form_state);
+}
+
+/**
+ * Domain add form callback 
+ */
+function domain_add_form_submit($form, &$form_state) {
+  global $user;
+
+  $domain = (object) $form_state['values'];
+  field_attach_submit('domains_domain', $domain, $form, $form_state);
+  domains_domain_save($domain);
+
+  $form_state['redirect'] = "domain/{$domain->id}";
+}
+
+/**
  * Domains registration form.
  */
 function domains_register_form($form, &$form_state) {
@@ -94,10 +206,10 @@ function domains_register_form($form, &$form_state) {
     $has_avai = FALSE;
     
     $form['results']['domains'] = array(
-    	'#type'   => 'checkboxes',
-      '#check_result' => $check_result,
-    	'#title'  => t('Available Domains'),
-    	'#options' => array(),
+        '#type'   => 'checkboxes',
+        '#check_result' => $check_result,
+        '#title'  => t('Available Domains'),
+        '#options' => array(),
     );
 
     // TODO: It would be better if we show unavailable domain as disabled checkbox.
@@ -260,113 +372,138 @@ function domains_renew_form_submit($form, $form_state) {
 }
 
 /**
- * Callback for domain page view.
- * 
- * @param type $domain
- * @param type $view_mode
- * @return type 
+ * Domain whois form
  */
-function domains_domain_page_view($domain, $view_mode = 'full') {
-  return entity_build_content('domain', $domain, $view_mode);
-}
+function domains_whois_form($form, $form_state, $domain) {
+  $whois = domains_whois($domain);
+  if (!$whois) {
+    drupal_set_message(t('Unable to retrive Whois information. Please retry later.'), 'error');
+    return $form;
+  }
 
-/**
- * Add domain menu callback
- */
-function domains_domain_add_callback() {
-  $domain = (object) array (
-    'id' => '',
-    'type' => 'domain',
-    'note' => '',
-  );
+  $form['#domain'] = $domain;
+  $form['#whois'] = $whois;
+  $form['#whois_types'] = array();
 
-  return drupal_get_form('domain_add_form', $domain);
-}
+  // TODO: Implement copy from Registrant contact.
 
-/**
- * Add domain form
- */
-function domain_add_form($form, &$form_state, $domain) {
-  global $user;
+  // TODO: Data required by the Registry for some country codes. Use
+  // GetExtAttributes to determine whether this TLD requires
+  // extended attributes.
+  foreach (domains_whois_types() as $type => $title) {
+    if (isset($whois[$type])) {
+      $whois_form = array(
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#title' => $title,
+        '#tree' => TRUE,
+      );
 
-  $form['name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Name'),
-    '#required' => TRUE,
-  );
+      $whois_form['organization'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Organization name'),
+        '#default_value' => $whois[$type]['organization']
+      );
+      $whois_form['job_title'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Job title'),
+        '#default_value' => $whois[$type]['job_title']
+      );
+      $whois_form['first_name'] = array(
+        '#type' => 'textfield',
+        '#title' => t('First name'),
+        '#default_value' => $whois[$type]['first_name'],
+        '#required' => TRUE,
+      );
+      $whois_form['last_name'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Last name'),
+        '#default_value' => $whois[$type]['last_name'],
+        '#required' => TRUE,
+      );
+      $whois_form['email'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Email'),
+        '#default_value' => $whois[$type]['email'],
+        '#required' => TRUE,
+      );
+      $whois_form['address1'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Address 1'),
+        '#default_value' => $whois[$type]['address1'],
+        '#required' => TRUE,
+      );
+      $whois_form['address2'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Address 2'),
+        '#default_value' => $whois[$type]['address2'],
+      );
+      $whois_form['phone'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Phone'),
+        '#default_value' => $whois[$type]['phone'],
+        '#required' => TRUE,
+      );
+      $whois_form['phone_ext'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Phone extension'),
+        '#default_value' => $whois[$type]['phone_ext'],
+      );
+      $whois_form['fax'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Fax'),
+        '#default_value' => $whois[$type]['fax'],
+      );
+      $whois_form['country'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Contry'),
+        '#default_value' => $whois[$type]['country'],
+        '#required' => TRUE,
+      );
+      $whois_form['state'] = array(
+        '#type' => 'textfield',
+        '#title' => t('State'),
+        '#default_value' => $whois[$type]['state'],
+        '#required' => TRUE,
+      );
+      $whois_form['city'] = array(
+        '#type' => 'textfield',
+        '#title' => t('City'),
+        '#required' => TRUE,
+        '#default_value' => $whois[$type]['city'],
+      );
+      $whois_form['postal_code'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Postal code'),
+        '#default_value' => $whois[$type]['postal_code'],
+      );
 
-  $form['uid'] = array(
-    '#type' => 'value',
-    '#default_value' => $user->uid,
-  );
-  
-  $form['controller'] = array(
-    '#type' => 'value',
-    '#default_value' => '',
-  );
+      $form['#whois_types'][] = $type;
+      $form[$type] = $whois_form;
+    }
+  }
 
-  $form['expiration'] = array(
-    '#type' => 'value',
-    '#default_value' => '',
-  );
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['save'] = array('#type' => 'submit', '#value' => t('Save'));
 
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-  );
-
-  field_attach_form('domain', $domain, $form, $form_state);
   return $form;
 }
 
-/**
- * Add domain validate callback
- */
-function domain_add_form_validate($form, &$form_state) {
-  $form_state['values']['name'] = strtolower($form_state['values']['name']);
-  $domain = $form_state['values']['name']; 
-
-  // Validate domain name across system and provider
-  if (!domains_validate_name($domain, FALSE)) {
-    form_set_error('name', t('Please enter a valid domain like example.com'));
+function domains_whois_form_validate($form, $form_state) {
+  foreach ($form['#whois_types'] as $type) {
+    // TODO: do the validate
   }
-  else {
-    if (count(entity_load('domain', FALSE, array('name' => $domain)))) {
-      form_set_error('name', t('Domain @domain already existed in the system.', array('@domain' => $domain)));
-    }
-    else {
-      $info = domains_find_domain($form_state['values']['name']);
-
-      if ($info === FALSE) {
-        form_set_error('name', t('Unable to validate your domain name.'));
-      }
-      else if (count($info)) {
-        // Use the first provider for now.
-        foreach ($info as $controller => $domain_info) {
-          $form_state['values']['controller'] = $controller;
-          $form_state['values']['expiration'] = $domain_info['expiration'];
-          break;
-        }
-      }
-      else {
-        form_set_error('name', t('Domain @domain is not registered with any provider. Please use domain register form to regsiter new domain.', array('@domain' => $domain)));
-      }
-    }
-  }
-
-  $domain_submisttion = (object) $form_state['values'];
-  field_attach_form_validate('domain', $domain_submisttion, $form, $form_state);
 }
 
-/**
- * Domain add form callback 
- */
-function domain_add_form_submit($form, &$form_state) {
-  global $user;
+function domains_whois_form_submit($form, $form_state) {
+  $new_whois = array();
+  foreach ($form['#whois_types'] as $type) {
+    $info = $form_state['values'][$type];
+    $new_whois[$type] = $info;
+  }
 
-  $domain = (object) $form_state['values'];
-  field_attach_submit('domain', $domain, $form, $form_state);
-  domains_domain_save($domain);
-
-  $form_state['redirect'] = "domain/{$domain->id}";
+  if (domains_update_whois($form['#domain'], $new_whois)) {
+    drupal_set_message(t('Domain whois information has been updated.'));
+  }
 }
