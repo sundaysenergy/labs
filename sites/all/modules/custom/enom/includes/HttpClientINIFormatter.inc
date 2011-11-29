@@ -40,6 +40,8 @@ class HttpClientINIFormatter implements HttpClientFormatter {
    *  The unserialized data.
    */
   public function unserialize($data) {
+    // TODO: there is a bug when data contains "!"
+
     // Too bad drupal_parse_info_file() doesn't have option from string
     $values = parse_ini_string($data);
     if (is_array($values)) {

@@ -127,10 +127,51 @@ function enom_default_wsclient_service() {
   $operation['label'] = 'Get Domain Info';
   $operation['parameter']['sld'] = array('type' => 'text', 'label' => 'Second Level Domain');
   $operation['parameter']['tld'] = array('type' => 'text', 'label' => 'Top Level Domain');
-  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'getdomaininfo');
+  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'GetDomainInfo');
 
   $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
   $service->operations['GetDomainInfo'] = $operation;
+
+  // Operation: GetContacts
+  $operation = array();
+  $operation['label'] = 'Get Contacts';
+  $operation['parameter']['sld'] = array('type' => 'text', 'label' => 'Second Level Domain');
+  $operation['parameter']['tld'] = array('type' => 'text', 'label' => 'Top Level Domain');
+  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'GetContacts');
+
+  $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
+  $service->operations['GetContacts'] = $operation;
+
+  // Operation: Contacts
+  $operation = array();
+  $operation['label'] = 'Contacts';
+  $operation['parameter']['sld'] = array('type' => 'text', 'label' => 'Second Level Domain');
+  $operation['parameter']['tld'] = array('type' => 'text', 'label' => 'Top Level Domain');
+  $types = array('Registrant', 'Tech', 'Admin', 'AuxBilling');
+
+  foreach ($types as $name) {
+    $operation['parameter'] += array(
+      $name . "OrganizationName" => array('type' => 'text', 'label' => "$name Organization name"),
+      $name . "JobTitle" => array('type' => 'text', 'label' => "$name Job title"),
+      $name . "FirstName" => array('type' => 'text', 'label' => "$name First name"),
+      $name . "LastName" => array('type' => 'text', 'label' => "$name Last name"),
+      $name . "EmailAddress" => array('type' => 'text', 'label' => "$name Email Address"),
+      $name . "Address1" => array('type' => 'text', 'label' => "$name Address 1"),
+      $name . "Address2" => array('type' => 'text', 'label' => "$name Address 2"),
+      $name . "Phone" => array('type' => 'text', 'label' => "$name Phone"),
+      $name . "Fax" => array('type' => 'text', 'label' => "$name Fax"),
+      $name . "PhoneExt" => array('type' => 'text', 'label' => "$name Phone extension"),
+      $name . "Country" => array('type' => 'text', 'label' => "$name Country"),
+      $name . "City" => array('type' => 'text', 'label' => "$name City"),
+      $name . "StateProvince" => array('type' => 'text', 'label' => "$name State / Provine"),
+      $name . "StateProvinceChoice" => array('type' => 'text', 'label' => "$name State / Province Choice"),
+      $name . "PostalCode" => array('type' => 'text', 'label' => "$name Postal code"),
+    );
+  }
+  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'Contacts');
+
+  $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
+  $service->operations['Contacts'] = $operation;
 
   // Operation: Purchase
   $operation = array();
@@ -165,6 +206,42 @@ function enom_default_wsclient_service() {
 
   $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
   $service->operations['DeleteRegistration'] = $operation;
+
+  // Operation: GetAllAccountInfo
+  $operation = array();
+  $operation['label'] = 'Get All Account Info';
+  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'GetAllAccountInfo');
+
+  $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
+  $service->operations['GetAllAccountInfo'] = $operation;
+
+  // Operation: UpdateAccountInfo
+  $operation = array();
+  $operation['label'] = 'Update Account Info';
+  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'UpdateAccountInfo');
+  $operation['parameter']['Account'] = array('type' => 'text', 'label' => 'Account');
+  $operation['parameter']['NewUID'] = array('type' => 'text', 'label' => 'New account UID');
+  $operation['parameter']['NewPW'] = array('type' => 'text', 'label' => 'New password');
+  $operation['parameter']['ConfirmNewPW'] = array('type' => 'text', 'label' => 'Confirm new password');
+  $operation['parameter']['RegistrantEmailAddress'] = array('type' => 'text', 'label' => 'Email');
+  $operation['parameter']['AuthQuestionType'] = array('type' => 'text', 'label' => 'Auth Question Type');
+  $operation['parameter']['AuthQuestionAnswer'] = array('type' => 'text', 'label' => 'Auth Question Answer');
+  $operation['parameter']['RegistrantOrganizationName'] = array('type' => 'text', 'label' => 'Organization name');
+  $operation['parameter']['RegistrantFirstName'] = array('type' => 'text', 'label' => 'First name');
+  $operation['parameter']['RegistrantLastName'] = array('type' => 'text', 'label' => 'Last name');
+  $operation['parameter']['RegistrantJobTitle'] = array('type' => 'text', 'label' => 'Job title');
+  $operation['parameter']['RegistrantAddress1'] = array('type' => 'text', 'label' => 'Address1');
+  $operation['parameter']['RegistrantAddress2'] = array('type' => 'text', 'label' => 'RegistrantAddress2');
+  $operation['parameter']['RegistrantCity'] = array('type' => 'text', 'label' => 'City');
+  $operation['parameter']['RegistrantStateProvinceChoice'] = array('type' => 'text', 'label' => 'State or Provine choice', 'description' => t('S for state, P for provine'));
+  $operation['parameter']['RegistrantStateProvince'] = array('type' => 'text', 'label' => 'State / Provine');
+  $operation['parameter']['RegistrantCountry'] = array('type' => 'text', 'label' => 'Country');
+  $operation['parameter']['RegistrantPostalCode'] = array('type' => 'text', 'label' => 'Postal code');
+  $operation['parameter']['RegistrantPhone'] = array('type' => 'text', 'label' => 'Phone');
+  $operation['parameter']['RegistrantFax'] = array('type' => 'text', 'label' => 'Fax');
+
+  $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
+  $service->operations['UpdateAccountInfo'] = $operation;
 
   $services[$service->name] = $service;
   return $services;
