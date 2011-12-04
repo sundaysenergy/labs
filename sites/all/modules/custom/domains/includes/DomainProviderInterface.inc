@@ -63,4 +63,16 @@ interface DomainProviderInterface {
    * @return array
    */
   public function getInfo();
+  
+  /**
+   * Get domain name
+   * @return string Domain name and it ltd
+   */
+  public function getDomainName($domain);
+  
+  /**
+   * Get domain id
+   * @return string An domain identify on provider
+   */
+  public function getDomainId($domain);
 }

@@ -507,3 +507,181 @@ function domains_whois_form_submit($form, $form_state) {
     drupal_set_message(t('Domain whois information has been updated.'));
   }
 }
+
+// Inport domain from registrar
+function domains_domain_import_form($form, &$form_state) {
+  ctools_add_js('ajax-responder', 'ctools');
+  // Show all providers
+  $providers = array();
+  foreach(module_implements('domains_provider_info') as $module) {
+    $providers = array_merge($providers, module_invoke($module, 'domains_provider_info'));
+  }
+  
+  $form['provider'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#title' => t('Select your provider'),
+    '#tree' => TRUE,
+  );
+  foreach($providers as $key => $provider) {
+    $form['provider'][$key] = array(
+      '#type' => 'checkbox',
+      '#title' => $provider['label'],
+    );
+  }
+  $form['next'] = array(
+    '#type' => 'button',
+    '#value' => t('Show domains can import'),
+    '#ajax' => array(
+      'callback' => 'domains_domain_import_list_ajax',
+      'wrapper' => 'import-provider-wrapper',
+    ),
+    '#prefix' => '<div class="clearfix">',
+    '#suffix' => '</div>',
+  );
+  $form['domains'] = array(
+    '#tree' => TRUE,
+    '#prefix' => '<div id="import-provider-wrapper">',
+    '#suffix' => '</div>',
+    '#type' => 'fieldset',
+    '#title' => t("Avaiable domain"),
+  );
+  $form['domains']['markup'] = array(
+    '#markup' => t('Please choose your provider to show avariable domain')
+  );
+  
+  if(isset($form_state['values'])) {
+    $values = $form_state['values'];
+    $providers = array_filter($values['provider']);
+    $header = array('name' => t('Name'));
+    foreach($providers as $provider_name => $status) {
+      $provider = domains_get_provider($provider_name);
+      $info = $provider->getInfo();
+      $form['domains'][$provider_name] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+        '#title' => $info['label'],
+        '#tree' => TRUE,
+      );
+      $domains = $provider->getDomains();
+      $checkeds = array();
+      $options = array();
+      foreach($domains as $domain) {
+        $domain_name = $provider->getDomainName($domain);
+        $options[$domain_name] = array('name' => $domain_name);
+//        $form['domains'][$provider_name][$domain_name] = array(
+//          '#type' => 'checkbox',
+//          '#title' => $domain_name,
+//        );
+        $checkeds[] = $domain_name;
+      }
+      // Get domain adrealy on our system
+      $query = new EntityFieldQuery();
+      $check = $query
+        ->entityCondition('entity_type', 'domains_domain')
+        ->propertyCondition('name', $checkeds, 'IN')
+        ->execute();
+      if(!empty($check['domains_domain'])) {
+        $adrealyed = domains_domain_load_multiple(array_keys($check['domains_domain']));
+        foreach($adrealyed as $domain) {
+          //unset($form['domains'][$provider_name][$domain->name]);
+          unset($options[$domain->name]);
+        }
+      }
+      $form['domains'][$provider_name]['domains'] = array(
+        '#type' => 'tableselect',
+        '#header' => $header,
+        '#options' => $options,
+        '#empty' => t('No domain available.'),
+      );
+    }
+    // Show import button
+    $form['domains']['import'] = array(
+      '#type' => 'submit',
+      '#value' => t('Import'),
+      '#ajax' => array(
+        'callback' => 'domains_domain_import_domain_ajax',
+        'wrapper' => 'import-provider-wrapper',
+      ),
+    );
+    $form['domains']['markup']['#markup'] = '';
+  }
+  return $form;
+}
+
+function domains_domain_import_form_validate($form, &$form_state) {
+  if(sizeof(array_filter($form_state['values']['provider'])) == 0) {
+    form_set_error('provider', t('Please choose latest one provider'));
+  }
+}
+
+function domains_domain_import_list_ajax($form, &$form_state) {
+  return $form['domains'];
+}
+
+function domains_domain_import_domain_ajax($form, &$form_state) {
+  $transfer = array();
+  foreach($form_state['values']['domains'] as $provider => $values) {
+    if(isset($values['domains'])) {
+      $import = array_filter($values['domains']);
+      if(sizeof($import) > 0) {
+        $transfer[$provider] = $import;
+      }
+    }
+  }
+  ctools_include('ajax', 'ctools');
+  ctools_include('object-cache', 'ctools');
+  ctools_object_cache_set('import-domain', 'import-domain', $transfer);
+  $commands = array(
+    ctools_ajax_command_redirect('domain/import/process'),
+  );
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+function domains_domain_import_process_form($form) {
+  ctools_include('object-cache', 'ctools');
+  $transfer = ctools_object_cache_get('import-domain', 'import-domain');
+  
+  foreach($transfer as $provider_name => $domain_list) {
+    $provider = domains_get_provider($provider_name);
+    $info = $provider->getInfo();
+    $form[$provider_name] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#title' => $info['label'],
+      '#tree' => TRUE,      
+    );
+    $form[$provider_name]['domains'] = array(
+      '#markup' => theme('item_list', array('items' => $domain_list)),
+    );
+  }
+  
+  return confirm_form($form,
+    t('Are you sure to import thoose domain?'),
+    'domain'
+  );
+}
+
+function domains_domain_import_process_form_submit($form, &$form_state) {  
+  $operations = array();
+  $transfer = ctools_object_cache_get('import-domain', 'import-domain');
+  foreach($transfer as $provider_name => $domain_list) {
+    $provider = domains_get_provider($provider_name);
+    foreach($domain_list as $domain) {
+      $operations[] = array('_domains_domain_inport_process', array($domain, $provider_name));
+    }
+  }
+  $batch = array(
+    'operations' => $operations,
+    'finished' => 'domains_domain_inport_process_finished',
+  );
+  
+  batch_set($batch);
+  // Delete cache
+  ctools_object_cache_clear('import-domain', 'import-domain');
+  $form_state['redirect'] = 'domain';
+  return;
+}

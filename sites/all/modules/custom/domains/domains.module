@@ -92,6 +92,22 @@ function domains_menu() {
     'access callback' => TRUE,
     'type' => MENU_NORMAL_ITEM,
   );
+  // Import domain
+  $items['domain/import'] = array(
+    'title' => 'Import Your Domains',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('domains_domain_import_form'),
+    'access arguments' => array('administer domains'),
+  );
+  $items['domain/import/process'] = array(
+    'title' => 'Import Your Domains',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('domains_domain_import_process_form'),
+    'access arguments' => array('administer domains'),
+    'type' => MENU_CALLBACK,
+  );
 
   // Submit a form without a page reload.
   $items['domain/register'] = array(
@@ -278,4 +294,39 @@ function domains_domain_set_properties($domain, $name, $value) {
       $domain->uid = $value;
       break;
   }
+}
+
+
+function _domains_domain_inport_process($domain_name, $provider_name, &$context) {
+  global $user;
+  $provider = domains_get_provider($provider_name);
+  $info = $provider->query($domain_name);
+  
+  $values = array(
+    'name' => $domain_name,
+    'uid' => $user->uid,
+    'expiration' => $info['expiration'],
+    'controller' => $provider_name,
+  );
+  // Save entity
+  $domain = entity_create('domains_domain', $values);
+  $domain->save();
+  
+  $context['results'][] = check_plain($domain->name);
+  $context['message'] = t('Import domain @name', array('@name' => $domain->name));
+}
+
+function domains_domain_inport_process_finished($success, $results, $operations) {
+  if ($success) {
+    // Here we could do something meaningful with the results.
+    // We just display the number of nodes we processed...
+    $message = count($results) . ' domain inported.';
+  }
+  else {
+    // An error occurred.
+    // $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+    $message = 'An error occurred while processing ' . $error_operation[0] . ' with arguments :' . print_r($error_operation[0], TRUE);
+  }
+  drupal_set_message($message);
 }
