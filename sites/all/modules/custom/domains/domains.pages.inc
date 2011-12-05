@@ -199,6 +199,11 @@ function domains_register_form($form, &$form_state) {
       'wrapper' => 'results-div',
     ),
     '#value' => t('Check Your Domain'),
+    '#attached' => array(
+      'js' => array(
+        drupal_get_path('module', 'domains') . '/js/trigger.js',
+      ),
+    ),
   );
 
   $form['results'] = array(
