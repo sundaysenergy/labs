@@ -1,0 +1,11 @@
+name = dynECT API
+description = "Interface with dynECT API."
+core = 7.x
+package = Services - clients
+
+files[] = includes/DynECTWSClientRestEndpoint.inc
+
+dependencies[] = wsclient
+dependencies[] = wsclient_rest
+
+configure = admin/config/domains/dns/dynect
