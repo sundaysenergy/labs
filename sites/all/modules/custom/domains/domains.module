@@ -92,6 +92,31 @@ function domains_menu() {
     'access callback' => TRUE,
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['domain/view'] = array(
+    'title' => 'Manage Your Domains',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'domains_dashboard_page',
+    'access callback' => TRUE,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $time = 30*24*60*60;
+  $items['domain/expiring_soon'] = array(
+    'title' => 'Domains Expiring Soon',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'domains_dashboard_page',
+    'page arguments' => array("$time"),
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['domain/expired'] = array(
+    'title' => 'Domains Expired',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'domains_dashboard_page',
+    'page arguments' => array('-1'),
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+  );
+  
   // Import domain
   $items['domain/import'] = array(
     'title' => 'Import Your Domains',

@@ -8,14 +8,28 @@
 /**
  * Domain dashboard menu callback.
  */
-function domains_dashboard_page() {
+function domains_dashboard_page($time = 0) {
   global $user;
-
-  $results = domains_domain_load_multiple(FALSE, array('uid' => $user->uid));
+  $own_domain_query = new EntityFieldQuery();
+  $own_domain_query = $own_domain_query->entityCondition('entity_type', 'domains_domain')
+    ->propertyCondition('uid', $user->uid);
+  // Get expiring soon or expired
+  if(!empty($time)) {
+    if($time > 0) {
+      // Get time expiring of domain <= $time
+      $own_domain_query = $own_domain_query->propertyCondition('expiration', REQUEST_TIME + $time, '<=');
+    }
+    else {
+      $own_domain_query = $own_domain_query->propertyCondition('expiration', REQUEST_TIME, '<');
+    }
+  }
+  $own_domains = $own_domain_query->execute();
   $domains = array();
-
-  foreach ($results as $domain) {
-    $domains[] = l($domain->name, "domain/" . $domain->id);
+  if(isset($own_domains['domains_domain'])) {
+    $results = domains_domain_load_multiple(array_keys($own_domains['domains_domain']));
+    foreach ($results as $domain) {
+      $domains[] = l($domain->name, "domain/" . $domain->id);
+    }
   }
 
   return theme('item_list', array(
