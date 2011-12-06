@@ -207,6 +207,14 @@ class EnomDomainProvider extends DomainProvider {
 
     return $tlds;
   }
+  
+  public function getDomainName($domain) {
+    return $domain['sld'] . '.' . $domain['tld'];
+  }
+  
+  public function getDomainId($domain) {
+    return $domain['DomainNameID'];
+  }
 
   /**
    * Invoke an Enom Service operation.
