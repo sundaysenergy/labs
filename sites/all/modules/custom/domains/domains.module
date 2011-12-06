@@ -4,6 +4,7 @@
  * @file
  * 
  * @TODO: Views integration, use it for page /domain
+ * @TODO: Schema: rename domain to domains_domain (domain module may used this)
  */
 
 define('DOMAINS_ADMIN_URL', 'admin/config/domains');
@@ -133,6 +134,9 @@ function domains_permission() {
     ),
     'add domain' => array(
       'title' => t('Add domain'),
+    ),
+    'register domain' => array(
+      'title' => t('Register new domain'),
     ),
   );
 }

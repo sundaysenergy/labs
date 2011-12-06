@@ -4,7 +4,6 @@
  * Implements hook_schema()
  */
 function domains_schema() {
-  $schema = array();
   $schema['domain'] = array (
     'description' => 'Domain entity storage table',
     'fields' => array(

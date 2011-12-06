@@ -144,6 +144,16 @@ function domain_add_form_submit($form, &$form_state) {
  * Domains registration form.
  */
 function domains_register_form($form, &$form_state) {
+  ctools_include('object-cache');
+  if ($cache = ctools_object_cache_get('domains', 'register-domains-selected')) {
+    if (!isset($form_state['values']['domain']) && isset($cache->domain)) {
+      $form_state['values']['domain'] = $cache->domain;
+    }
+    if (!isset($form_state['values']['domains']) && isset($cache->domains)) {
+      $form_state['values']['domains'] = $cache->domains;
+    }
+  }
+
   $check_result = NULL;
 
   // check for available domains now
@@ -175,6 +185,7 @@ function domains_register_form($form, &$form_state) {
   $form['search']['domain'] = array(
     '#type' => 'textfield',
     '#title' => t('Domain Name'),
+    '#default_value' => !empty($form_state['values']['domain']) ? $form_state['values']['domain'] : NULL,
   );
 
   // if we make it submit type, it won't work
@@ -202,14 +213,15 @@ function domains_register_form($form, &$form_state) {
   );
 
   // Populate domain data into form.
-  if ($check_result !== NULL && $check_result !== FALSE) {
+  if (!empty($check_result)) {
     $has_avai = FALSE;
     
     $form['results']['domains'] = array(
-        '#type'   => 'checkboxes',
-        '#check_result' => $check_result,
-        '#title'  => t('Available Domains'),
-        '#options' => array(),
+      '#type'   => 'checkboxes',
+      '#check_result' => $check_result,
+      '#title'  => t('Available Domains'),
+      '#options' => array(),
+      '#default_value' => !empty($form_state['values']['domains']) ? $form_state['values']['domains'] : array(),
     );
 
     // TODO: It would be better if we show unavailable domain as disabled checkbox.
@@ -230,6 +242,10 @@ function domains_register_form($form, &$form_state) {
         ),
         '#value' => t('Purchase'),
       );
+
+      if (user_is_anonymous()) {
+        $form['results']['purchase']['#value'] = t('Register or login to purchase');
+      }
     }
     else {
       $form['results']['results_markup']['#markup'] = t('There is no available domains match your search criteria.');
@@ -277,37 +293,52 @@ function domains_register_form_purchase_ajax_submit($form, &$form_state) {
       $selected_domains[] = $domain;
     }
   }
+  
+  if (!user_is_anonymous()) {
+    if (!empty($selected_domains)) {
+      ctools_include('ajax', 'ctools');
 
-  if ($selected_domains) {
-    ctools_include('ajax', 'ctools');
+      $check_result = $form['results']['domains']['#check_result'];
+      $succeed = FALSE;
 
-    $check_result = $form['results']['domains']['#check_result'];
-    $succeed = FALSE;
+      foreach ($selected_domains as $name) {
+        $supported_controllers = $check_result[$name];
 
-    foreach ($selected_domains as $name) {
-      $supported_controllers = $check_result[$name];
+        // Let use the first one for now.
+        if (count($supported_controllers)) {
+          $domain = domains_purchase($name, $supported_controllers[0]);
 
-      // Let use the first one for now.
-      if (count($supported_controllers)) {
-        $domain = domains_purchase($name, $supported_controllers[0]);
-
-        if ($domain) {
-          $succeed = TRUE;
-          break;
+          if ($domain) {
+            $succeed = TRUE;
+            break;
+          }
         }
       }
-    }
 
-    if (FALSE == $succeed) {
-      $commands[] = ajax_command_alert(t('There were an error while we trying to purchase your selected domains. Please contact administrator for more information.'));
+      if (FALSE == $succeed) {
+        $commands[] = ajax_command_alert(t('There were an error while we trying to purchase your selected domains. Please contact administrator for more information.'));
+      }
+      else {
+        drupal_set_message(t('You have sucessfully purchase @count domain(s) to your account.', array('@count' => count($selected_domains))));
+        $commands[] = ctools_ajax_command_redirect('domain');
+      }
     }
     else {
-      drupal_set_message(t('You have sucessfully purchase @count domain(s) to your account.', array('@count' => count($selected_domains))));
-      $commands[] = ctools_ajax_command_redirect('domain');
+      $commands[] = ajax_command_alert(t('Please tick on the domain you want to purchase.'));
     }
   }
   else {
-    $commands[] = ajax_command_alert(t('Please tick on the domain you want to purchase.'));
+    ctools_include('object-cache');
+    ctools_include('ajax');
+    
+    # Cache form values
+    $register = new stdClass();
+    $register->domain  = $form_state['values']['domain'];
+    $register->domains = $form_state['values']['domains'];
+    ctools_object_cache_set('domains', 'register-domains-selected', $register);
+
+    # Redirect user to login form
+    $commands[] = ctools_ajax_command_redirect('user/login', 0, array('query' => array("destination=domain/register")));
   }
 
   return array('#type' => 'ajax', '#commands' => $commands);
