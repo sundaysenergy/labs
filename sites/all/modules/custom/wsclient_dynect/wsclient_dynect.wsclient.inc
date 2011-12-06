@@ -89,8 +89,6 @@ function wsclient_dynect_default_wsclient_service() {
   );
   $service->operations['get_zone'] = $get_zones_operations;
   
-  $services[$service->name] = $service;
-  
   // Get AllRecord of a zone
   $get_zones_operations = array(
     'label' => 'Get AllRecord',
@@ -116,7 +114,25 @@ function wsclient_dynect_default_wsclient_service() {
     'merge_url' => array('record_type', 'query'),
     'result' => array('type' => 'dynect_result', 'label' => 'Session Result'),
   );
-  
   $service->operations['get_record'] = $get_detail_record_operations;
+  
+  // Create new zone
+  $create_zone_operations = array(
+    'label' => 'Create A Zone',
+    'type' => 'POST',
+    'url' => '/Zone/',
+    'parameter' => array(
+      'zone_name' => array('type' => 'text', 'label' => 'Zone'),
+      'rname' => array('type' => 'text', 'label' => 'Administrative contact for this zone'),
+      'zone' => array('type' => 'text', 'label' => 'Name of the zone to create'),
+      'ttl' => array('type' => 'text', 'label' => 'Default TTL (in seconds) for records in the zone'),
+    ),
+    'merge_url' => array('zone_name'),
+    'data' => array('rname', 'zone', 'ttl'),
+    'result' => array('type' => 'dynect_result', 'label' => 'Session Result'),
+  );
+  $service->operations['create_zone'] = $create_zone_operations;
+  
+  $services[$service->name] = $service;
   return $services;
 }

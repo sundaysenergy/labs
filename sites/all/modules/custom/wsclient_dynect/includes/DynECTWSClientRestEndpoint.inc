@@ -25,8 +25,8 @@ class DynECTWSClientRestEndpoint extends WSClientRESTEndpoint {
     if (isset($operation['data'])) {
       foreach($operation['data'] as $field) {
         $data[$field] = $arguments[$field];
+        unset($arguments[$field]);
       } 
-      unset($arguments[$field]);
     }
     if (isset($operation['merge_url'])) {
       foreach($operation['merge_url'] as $field) {

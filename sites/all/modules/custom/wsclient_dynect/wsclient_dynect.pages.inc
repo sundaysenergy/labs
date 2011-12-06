@@ -35,7 +35,7 @@ function wsclient_dynect_zone_detail($zone) {
       if($record_detail['status'] == 'success') {
         $data = $record_detail['data'];
         $list = $data['rdata'];
-        if($data['record_type'] == 'SOA') {
+        if(in_array($data['record_type'], array('SOA', 'SRV'))) {
           $list = array();
           foreach($data['rdata'] as $key => $value) {
             $list[] = $key . ': ' . $value;
@@ -54,4 +54,51 @@ function wsclient_dynect_zone_detail($zone) {
     t('Name'), t('Type'), t('TTL'), t('Data')
   );
   return theme('table', array('rows' => $records, 'header' => $header));
+}
+
+
+// Create new zone
+function wsclient_dynect_create_zone_form($form, $form_state) {
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Domain name'),
+    '#required' => TRUE,
+  );
+  $form['admin'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Admin email address'),
+    '#required' => TRUE,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add new zone'),
+  );
+  return $form;
+}
+
+function wsclient_dynect_create_zone_form_validate($form, $form_state) {
+  $values = $form_state['values'];
+  if(!domains_validate_name($values['name'])) {
+    form_set_error('name', t('Please enter a valid domain like example.com'));
+  }
+  if(!valid_email_address($values['admin'])) {
+    form_set_error('admin', t('Please enter a valid email address like admin@example.com'));
+  }
+}
+
+function wsclient_dynect_create_zone_form_submit($form, $form_state) {
+  $values = $form_state['values'];
+  $service = wsclient_service_load('dynect');
+  
+  $result = $service->create_zone($values['name'], $values['admin'], $values['name'], 3600);
+  if($result['status'] == 'success') {
+    // Publish zone
+    drupal_set_message('Zone create success, please publish it');
+  }
+  else {
+    foreach($result['msgs'] as $message){
+      $message = (object) $message;
+      drupal_set_message($message->LVL.": ".($message->ERR_CD != '' ? '('.$message->ERR_CD.') ' : '').$message->SOURCE." - ".$message->INFO, 'error');
+    }
+  }
 }
