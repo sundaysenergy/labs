@@ -54,7 +54,7 @@ function wsclient_entity_info_alter(&$info) {
   $services = entity_load_multiple_by_name('wsclient_service', FALSE);
   // We register entities for all remote data types, however we skip the remote
   // site pointing at ourself ('self') defined by the testing module, as this
-  // would result in issueing a page request during the entity info cache
+  // would result in issuing a page request during the entity info cache
   // refresh on our site, which would result in a nice cache building endless
   // loop.
   unset($services['self']);

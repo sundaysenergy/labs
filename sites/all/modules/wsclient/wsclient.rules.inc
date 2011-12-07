@@ -173,7 +173,7 @@ function wsclient_service_action($arguments, RulesPlugin $element) {
       $return = $service->invoke($arguments['operation'], $args);
     }
     catch (Exception $e) {
-      throw new RulesException($e->getMessage(), array(), $element, RulesLog::ERROR);
+      throw new RulesEvaluationException($e->getMessage(), array(), $element, RulesLog::ERROR);
     }
     return array('result' => $return);
   }
