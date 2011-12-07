@@ -5,7 +5,9 @@
  * Module for dynECT API
  */
 
-module_load_include("inc", "wsclient_dynect", "wsclient_dynect.wsclient");
+module_load_include('inc', 'wsclient_dynect', 'wsclient_dynect.rules');
+module_load_include('inc', 'wsclient_dynect', 'wsclient_dynect.rules_defaults');
+module_load_include('inc', 'wsclient_dynect', 'wsclient_dynect.wsclient');
 
 function wsclient_dynect_menu() {
   $item['admin/config/domains/dns/dynect'] = array(
@@ -46,10 +48,4 @@ function wsclient_dynect_menu() {
     'access arguments' => array('administer web services'),
   );
   return $item;
-}
-
-/**
- * Implements hook_wsclient_service_load().
- */
-function wsclient_dynect_wsclient_service_load($wsclient_service) {
 }

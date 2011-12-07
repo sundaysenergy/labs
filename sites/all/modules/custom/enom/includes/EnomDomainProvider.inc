@@ -31,7 +31,10 @@ class EnomDomainProvider extends DomainProvider {
     $result = $this->invoke("Purchase", array(
       "tld" => $domain_pieces[1],
       "sld" => $domain_pieces[0],
-      "usedns" => "default",
+      "NS1" => "ns1.p09.dynect.net",
+      "NS2" => "ns2.p09.dynect.net",
+      "NS3" => "ns3.p09.dynect.net",
+      "NS4" => "ns4.p09.dynect.net",
     ));
 
     // TODO: enom may return RPRCode = 1300 and IsRealTimeTLD = FALSE
