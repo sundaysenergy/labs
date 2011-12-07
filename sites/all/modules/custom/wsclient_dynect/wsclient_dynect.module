@@ -37,6 +37,14 @@ function wsclient_dynect_menu() {
     'file' => 'wsclient_dynect.pages.inc',
     'access arguments' => array('administer web services'),
   );
+  
+  $item['dynect/zone/create_record'] = array(
+    'title' => 'dynECT API create new record',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('wsclient_dynect_create_record_form'),
+    'file' => 'wsclient_dynect.pages.inc',
+    'access arguments' => array('administer web services'),
+  );
   return $item;
 }
 

@@ -93,6 +93,7 @@ function wsclient_dynect_create_zone_form_submit($form, $form_state) {
   $result = $service->create_zone($values['name'], $values['admin'], $values['name'], 3600);
   if($result['status'] == 'success') {
     // Publish zone
+    $service->publish_zone($values['name']);
     drupal_set_message('Zone create success, please publish it');
   }
   else {
@@ -100,5 +101,70 @@ function wsclient_dynect_create_zone_form_submit($form, $form_state) {
       $message = (object) $message;
       drupal_set_message($message->LVL.": ".($message->ERR_CD != '' ? '('.$message->ERR_CD.') ' : '').$message->SOURCE." - ".$message->INFO, 'error');
     }
+  }
+}
+
+function wsclient_dynect_create_record_form($form, $form_state) {
+  $form['fqdn'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Record name'),
+    '#description' => t('Only input sub record you need to add, like www or server1'),
+  );
+  $form['zone'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Domain name'),
+    '#required' => TRUE,
+  );
+  $record_type = _wsclient_dynect_support_type();
+  $form['record_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Type'),
+    '#options' => $record_type,
+    '#required' => TRUE,
+  );
+  $form['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Value'),
+    '#required' => TRUE,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add new record'),
+  );
+  return $form;
+}
+
+function wsclient_dynect_create_record_form_validate($form, $form_state) {
+  $values = $form_state['values'];
+  if(!domains_validate_name($values['zone'])) {
+    form_set_error('zone', t('Please enter a valid domain like example.com'));
+  }
+}
+
+function wsclient_dynect_create_record_form_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  $service = wsclient_service_load('dynect');
+  
+  // TODO: Write method to fill data here, for A and AAA record we are using address, CName we will using cname
+  $rdata = array('address' => $values['value']);
+  // Current only A record support
+  
+  $result = $service->create_record($values['record_type'], $values['zone'], !empty($values['fqdn']) ? $values['fqdn'] . '.' . $values['zone'] : $values['zone'], $rdata);
+  if(is_object($result)) $result = json_decode ($result->body);
+  $result = (array) $result;
+  if($result['status'] == 'success') {
+    foreach($result['msgs'] as $message){
+      $message = (object) $message;
+      drupal_set_message($message->LVL.": ".($message->ERR_CD != '' ? '('.$message->ERR_CD.') ' : '').$message->SOURCE." - ".$message->INFO);
+    }
+    $service->publish_zone($values['zone']);
+    drupal_goto('dynect/zone/' . $values['zone']);
+  }
+  else {
+    foreach($result['msgs'] as $message){
+      $message = (object) $message;
+      drupal_set_message($message->LVL.": ".($message->ERR_CD != '' ? '('.$message->ERR_CD.') ' : '').$message->SOURCE." - ".$message->INFO, 'error');
+    }
+    $form_state['rebuild'] = TRUE;
   }
 }

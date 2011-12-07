@@ -133,6 +133,52 @@ function wsclient_dynect_default_wsclient_service() {
   );
   $service->operations['create_zone'] = $create_zone_operations;
   
+  // Publish a zone
+  $publish_zone_operations = array(
+    'label' => 'Publish A Zone',
+    'type' => 'PUT',
+    'url' => '/Zone/',
+    'parameter' => array(
+      'zone' => array('type' => 'text', 'label' => 'Name of the zone to create'),
+      'publish' => array('type' => 'hidden', 'default value' => 1),
+    ),
+    'merge_url' => array('zone'),
+    'data' => array('publish'),
+    'result' => array('type' => 'dynect_result', 'label' => 'Session Result'),
+  );
+  $service->operations['publish_zone'] = $publish_zone_operations;
+  
+  // Create a record
+  $record_type = _wsclient_dynect_support_type();
+  $create_record_operations = array(
+    'label' => 'Create A Record',
+    'type' => 'POST',
+    'url' => '/',
+    'parameter' => array(
+      'record_type' => array('type' => 'text', 'label' => 'Type of record will create, one of ' . implode(',', $record_type)),
+      'zone' => array('type' => 'text', 'label' => 'Name of the zone to create'),
+      'fqdn' => array('type' => 'text', 'label' => 'Name of the record to create'),
+      'rdata' => array('type' => 'struct', 'label' => 'Data of the record'),
+    ),
+    'merge_url' => array('record_type', 'zone', 'fqdn'),
+    'data' => array('rdata'),
+    'result' => array('type' => 'dynect_result', 'label' => 'Session Result'),
+  );
+  $service->operations['create_record'] = $create_record_operations;
+  
   $services[$service->name] = $service;
   return $services;
+}
+
+function _wsclient_dynect_support_type() {
+  return array(
+    'ARecord' => 'A',
+    'AAAARecord' => 'AAAA',
+    'CNAMERecord' => 'CNAME',
+    'MXRecord' => 'MX',
+    'SOARecord' => 'SOA',
+    'SPFRecord' => 'SPF',
+    'SRVRecord' => 'SRV',
+    'TXTRecord' => 'TXT',
+  );
 }
