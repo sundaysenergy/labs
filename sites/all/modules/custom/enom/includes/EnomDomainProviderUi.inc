@@ -3,8 +3,17 @@
 class EnomDomainProviderUi extends DomainProviderUI {
 
   public function buildConfigForm(&$form, &$form_state) {
-    $account_info = $this->provider->invoke('GetAllAccountInfo');
+    $form['login_info'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('API information'),
+      '#collapsible' => TRUE,
+    );
 
+    $form['login_info']['note'] = array(
+      '#markup' => t('Enom API can be configured at Web Services interface.'),
+    );
+
+    $account_info = $this->provider->invoke('GetAllAccountInfo');
     $form['#default_info'] = $account_info;
 
     $form['account'] = array(

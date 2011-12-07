@@ -13,6 +13,7 @@ function domains_dashboard_page($time = 0) {
   $own_domain_query = new EntityFieldQuery();
   $own_domain_query = $own_domain_query->entityCondition('entity_type', 'domains_domain')
     ->propertyCondition('uid', $user->uid);
+
   // Get expiring soon or expired
   if(!empty($time)) {
     if($time > 0) {
@@ -600,7 +601,8 @@ function domains_domain_import_form($form, &$form_state) {
   $form['domains']['markup'] = array(
     '#markup' => t('Please choose your provider to show avariable domain')
   );
-  
+
+  // TODO: This function is not exception-safe.
   if(isset($form_state['values'])) {
     $values = $form_state['values'];
     $providers = array_filter($values['provider']);
