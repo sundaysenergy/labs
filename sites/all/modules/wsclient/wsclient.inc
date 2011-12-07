@@ -13,6 +13,7 @@ class WSClientServiceDescription extends Entity {
   public $settings = array();
   public $operations = array();
   public $datatypes = array();
+  public $global_parameters = array();
   public $name;
   public $label;
   public $url;
@@ -72,6 +73,14 @@ class WSClientServiceDescription extends Entity {
         $named_arguments[$param] = array_shift($arguments);
       }
     }
+
+    // Fill in global parameters.
+    foreach ($this->global_parameters as $param => $info) {
+      if (!isset($named_arguments[$param])) {
+        $named_arguments[$param] = $info['default value'];
+      }
+    }
+
     return $this->endpoint()->call($operation, $named_arguments);
   }
 

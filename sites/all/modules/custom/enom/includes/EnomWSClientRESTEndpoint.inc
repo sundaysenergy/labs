@@ -1,15 +1,14 @@
 <?php
 
+// TODO: We may remove this class later.
 class EnomWSClientRESTEndpoint extends WSClientRESTEndpoint {
   public function call($operation_name, $arguments) {
-    // fill with default value
-    foreach (array('uid', 'pw') as $param) {
-      if (empty($arguments[$param])) {
-        if (isset($this->service->settings['default'], $this->service->settings['default'][$param])) {
-          $arguments[$param] = $this->service->settings['default'][$param];
-        }
-      }
+    // Fill with default value.
+    if (empty($arguments['uid'])) {
+      $arguments['uid'] = variable_get('enom_login_uid', '');
+      $arguments['pw'] = variable_get('enom_login_pw', '');
     }
+
     return parent::call($operation_name, $arguments);
   }
 }

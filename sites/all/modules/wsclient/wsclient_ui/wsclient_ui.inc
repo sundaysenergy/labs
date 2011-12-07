@@ -148,6 +148,36 @@ function wsclient_service_form($form, &$form_state, $service, $op = 'edit') {
       '#rows' => $rows,
       '#header' => $header,
     );
+
+    // Input for global service parameters.
+    $form['global_parameters'] = array(
+      '#tree' => TRUE,
+      '#element_validate' => array('wsclient_ui_validate_global_parameters'),
+      '#theme' => 'wsclient_ui_global_parameter_form',
+      '#title' => t('Input for global service parameters'),
+      '#description' => t('Specify the global parameters for the service. Global parameters will be used if the value of an operation parameter with the same name is empty.'),
+    );
+
+    $weight = 0;
+    foreach ($service->global_parameters as $name => $info) {
+      $form['global_parameters']['items'][$name] = _wsclient_ui_global_parameter_row($service, $datatypes, $name, $info);
+      $form['global_parameters']['items'][$name]['weight']['#default_value'] = $weight++;
+    }
+
+    // Always add three empty lines for global parameters input.
+    $form_state['more'] = isset($form_state['more']) ? $form_state['more'] : 3;
+    for ($i = 0; $i < $form_state['more']; $i++) {
+      if (!isset($form['global_parameters']['items'][$i])) {
+        $form['global_parameters']['items'][$i] = _wsclient_ui_global_parameter_row($service, $datatypes);
+      }
+    }
+    $form['global_parameters']['more'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add more'),
+      '#limit_validation_errors' => array(array('properties')),
+      '#submit' => array('wsclient_ui_more_submit'),
+    );
+
     // Add some table styling from Rules.
     $form['datatypes']['#attributes']['class'][] = 'rules-elements-table';
     $form['datatypes']['#attached']['css'][] = drupal_get_path('module', 'rules') . '/ui/rules.ui.css';
@@ -164,6 +194,19 @@ function wsclient_service_form($form, &$form_state, $service, $op = 'edit') {
  */
 function wsclient_service_form_submit($form, &$form_state) {
   $service = entity_ui_form_submit_build_entity($form, $form_state);
+
+  // Save global paramters.
+  if (isset($form_state['values']['global_parameters'])) {
+    $service->global_parameters = array();
+    foreach ($form_state['values']['global_parameters']['items'] as $key => $item) {
+      if (!empty($item['name'])) {
+        $service->global_parameters[$item['name']] = array(
+          'default value' => $item['default_value']
+        );
+      }
+    }
+  }
+
   $service->save();
   drupal_set_message(t('Web service description %service has been saved.', array('%service' => $service->label)));
   if ($form_state['op'] == 'add') {
@@ -270,6 +313,26 @@ function wsclient_ui_operation($form, &$form_state, $service, $operation, $op = 
   $form_state['service'] = $service;
   $form_state['operation'] = $operation;
   return $form;
+}
+
+/**
+ * Generates a row in the global parameter table.
+ */
+function _wsclient_ui_global_parameter_row($service, $types, $name = '', $info = array()) {
+  $param_type = 0;
+  $multiple = FALSE;
+  $parameter['name'] = array(
+    '#type' => 'textfield',
+    '#size' => 40,
+    '#default_value' => $name,
+    '#element_validate' => array('wsclient_ui_name_validate'),
+  );
+  $parameter['default_value'] = array(
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#default_value' => isset($info['default value']) ? $info['default value'] : '',
+  );
+  return $parameter;
 }
 
 /**
@@ -439,6 +502,50 @@ function theme_wsclient_ui_parameter_form($variables) {
 }
 
 /**
+ * Themes the global parameters form for editing the used parameters.
+ *
+ * @ingroup themeable
+ */
+function theme_wsclient_ui_global_parameter_form($variables) {
+  $elements = $variables['element'];
+
+  $table['#theme'] = 'table';
+  $table['#header'] = array(t('Name'), t('Default value'));
+  $table['#attributes']['id'] = 'rules-' . drupal_html_id($elements['#title']) . '-id';
+
+  foreach (element_children($elements['items']) as $key) {
+    $element = &$elements['items'][$key];
+    // Add special classes to be used for tabledrag.js.
+    $element['weight']['#attributes']['class'] = array('rules-element-weight');
+
+    $row = array();
+    $row[] = array('data' => $element['name']);
+    $row[] = array('data' => $element['default_value']);
+    $row = array('data' => $row) + $element['#attributes'];
+    $row['class'][] = 'draggable';
+    $table['#rows'][] = $row;
+  }
+  $elements['items']['#printed'] = TRUE;
+
+  // Theme it like a form item, but with the description above the content.
+  $attributes['class'][] = 'form-item';
+  $attributes['class'][] = 'rules-variables-form';
+
+  $output = '<div' . drupal_attributes($attributes) . '>' . "\n";
+  $output .= theme('form_element_label', $variables);
+  if (!empty($elements['#description'])) {
+    $output .= ' <div class="description">' . $elements['#description'] . "</div>\n";
+  }
+  $output .= ' ' . drupal_render($table) . "\n";
+  // Add in any further children elements.
+  foreach (element_children($elements, TRUE) as $key) {
+    $output .= drupal_render($elements[$key]);
+  }
+  $output .= "</div>\n";
+  return $output;
+}
+
+/**
  * Returns a list of available data types for service parameters, return
  * values or data type properties. Entities are excluded.
  *
@@ -490,6 +597,22 @@ function wsclient_ui_validate_parameters($elements, &$form_state) {
     }
     if ($element['type']['#value'] == 'hidden' && $element['default_value']['#value'] === '') {
       form_error($element['default_value'], t('The "hidden" data type requires a default value.'));
+    }
+  }
+}
+
+/**
+ * FAPI callback to validate the form for editing global parameter info.
+ */
+function wsclient_ui_validate_global_parameters($elements, &$form_state) {
+  $names = array();
+  foreach (element_children($elements['items']) as $item_key) {
+    $element = &$elements['items'][$item_key];
+    if ($element['name']['#value']) {
+      if (isset($names[$element['name']['#value']])) {
+        form_error($element['name'], t('The name %name is already taken.', array('%name' => $element['name']['#value'])));
+      }
+      $names[$element['name']['#value']] = TRUE;
     }
   }
 }

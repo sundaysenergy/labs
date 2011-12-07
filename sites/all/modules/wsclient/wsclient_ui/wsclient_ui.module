@@ -126,6 +126,10 @@ function wsclient_ui_theme() {
       'render element' => 'element',
       'file' => 'wsclient_ui.inc',
     ),
+    'wsclient_ui_global_parameter_form' => array(
+      'render element' => 'element',
+      'file' => 'wsclient_ui.inc',
+    ),
   );
 }
 

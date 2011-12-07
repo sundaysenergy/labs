@@ -157,6 +157,8 @@ function wsclient_soap_parse_types(array $types) {
       $properties = explode(';', $property_string);
       // Remove last empty element
       array_pop($properties);
+      // Initialize empty property information.
+      $wsclient_types[$type_name]['property info'] = array();
       foreach ($properties as $property_string) {
         // Cut off white spaces.
         $property_string = trim($property_string);
@@ -195,15 +197,18 @@ function wsclient_soap_parse_operations(array $operations) {
     $parts = explode('(', $operation);
     // Cut off trailing ')'.
     $param_string = substr($parts[1], 0, -1);
-    $parameters = explode(',', $param_string);
-    foreach ($parameters as $parameter) {
-      $parts = explode(' ', $parameter);
-      $param_type = $parts[0];
-      // Remove leading '$' from parameter name.
-      $param_name = substr($parts[1], 1);
-      $wsclient_operations[$op_name]['parameter'][$param_name] = array(
-        'type' => wsclient_soap_type_mapper($param_type),
-      );
+    if ($param_string) {
+      $parameters = explode(',', $param_string);
+      foreach ($parameters as $parameter) {
+        $parameter = trim($parameter);
+        $parts = explode(' ', $parameter);
+        $param_type = $parts[0];
+        // Remove leading '$' from parameter name.
+        $param_name = substr($parts[1], 1);
+        $wsclient_operations[$op_name]['parameter'][$param_name] = array(
+          'type' => wsclient_soap_type_mapper($param_type),
+        );
+      }
     }
   }
   return $wsclient_operations;

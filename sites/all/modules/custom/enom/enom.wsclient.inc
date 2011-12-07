@@ -18,11 +18,6 @@ function enom_default_wsclient_service() {
   $service->url = 'http://resellertest.enom.com/interface.asp';
   $service->type = 'enom_rest';
 
-  // TODO: make this configurable
-  $service->settings['default']['uid'] = "sundaysenergy";
-  $service->settings['default']['pw'] = "zola322";
-
-  // wsclient, issue #1302740
   $service->global_parameters['uid'] = array(
     'default value' => '',
   );
