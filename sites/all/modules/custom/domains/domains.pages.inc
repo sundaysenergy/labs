@@ -319,7 +319,7 @@ function domains_register_form_purchase_ajax_submit($form, &$form_state) {
       ctools_include('ajax', 'ctools');
 
       $check_result = $form['results']['domains']['#check_result'];
-      $succeed = FALSE;
+      $succeed = TRUE;
 
       foreach ($selected_domains as $name) {
         $supported_controllers = $check_result[$name];
@@ -328,8 +328,8 @@ function domains_register_form_purchase_ajax_submit($form, &$form_state) {
         if (count($supported_controllers)) {
           $domain = domains_purchase($name, $supported_controllers[0]);
 
-          if ($domain) {
-            $succeed = TRUE;
+          if (!$domain) {
+            $succeed = FALSE;
             break;
           }
         }
