@@ -32,7 +32,13 @@ function domains_schema() {
         'default' => 0,
       ),
       'controller' => array(
-        'description' => 'Domain Controller key.',
+        'description' => 'Domain Provider.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'dns_provider' => array(
+        'description' => 'Domain DNS Provider.',
         'type' => 'varchar',
         'length' => '255',
         'not null' => TRUE,

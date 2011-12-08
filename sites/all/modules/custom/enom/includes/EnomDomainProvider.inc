@@ -198,6 +198,30 @@ class EnomDomainProvider extends DomainProvider {
     return FALSE;
   }
 
+  /**
+   * Get nameservers for a domain
+   * @param string $domain
+   */
+  public function getNameservers($domain) {
+    $domain_pieces = explode(".", $domain);
+
+    $response = $this->invoke("GetDNS", array(
+      "tld" => $domain_pieces[1],
+      "sld" => $domain_pieces[0],
+    ));
+
+    return $response['DNS'];
+  }
+
+  /**
+   * Update nameservers for a domain
+   * @param string $domain
+   * @param array $whois
+   */
+  public function setNameservers($domain, $ns) {
+    
+  }
+
   public function getTLDs() {
     $response = $this->invoke('GetTldList');
     $tlds = array();

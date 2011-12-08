@@ -77,6 +77,26 @@ function domains_menu() {
     'access callback' => TRUE,
     'type' => MENU_LOCAL_TASK,
   );
+  $items['domain/%domains_domain/dns'] = array(
+    'title' => 'DNS',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('domains_domain_dns_form', 1),
+    'access arguments' => array('edit domain dns'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['domain/%domains_domain/dns/nameserver'] = array(
+    'title' => 'Nameservers',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['domain/%domains_domain/dns/records'] = array(
+    'title' => 'Records',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('domains_domain_dns_records_form', 1),
+    'access arguments' => array('edit domain dns'),
+    'type' => MENU_LOCAL_TASK,
+  );
 
   $items['domain/add'] = array(
     'title' => 'Add domain',
@@ -181,6 +201,9 @@ function domains_permission() {
     ),
     'register domain' => array(
       'title' => t('Register new domain'),
+    ),
+    'edit domain dns' => array(
+      'title' => t('Edit domain DNS'),
     ),
   );
 }
@@ -339,6 +362,7 @@ function _domains_domain_inport_process($domain_name, $provider_name, &$context)
     'uid' => $user->uid,
     'expiration' => $info['expiration'],
     'controller' => $provider_name,
+    'dns_provder' => 'custom',
   );
   // Save entity
   $domain = entity_create('domains_domain', $values);

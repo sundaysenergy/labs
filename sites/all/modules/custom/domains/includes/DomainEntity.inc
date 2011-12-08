@@ -24,6 +24,12 @@ class DomainEntity extends Entity {
   public $controller;
 
   /**
+   * DNS controller
+   * @var string
+   */
+  public $dns_provider;
+
+  /**
    * Owner of this domain
    * @var int
    */
@@ -34,12 +40,4 @@ class DomainEntity extends Entity {
    * @var int
    */
   public $expiration;
-
-  /**
-   * Get domain controller object
-   * @return DomainProviderInterface
-   */
-  public function getController() {
-    return domains_get_provider($this->controller);
-  }
 }

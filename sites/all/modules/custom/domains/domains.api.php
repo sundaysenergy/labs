@@ -19,3 +19,17 @@ function hook_domains_provider_info() {
     ),
   );
 }
+
+/**
+ * Implements this hook to provide DNS controller for domain
+ * 
+ * Return array of dns providers
+ */
+function hook_domains_dns_provider_info() {
+  return array(
+    'enom' => array(
+      'label' => 'Enom',
+      'class' => 'EnomDnsController',
+    ),
+  );
+}

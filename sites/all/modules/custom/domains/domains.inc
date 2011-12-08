@@ -175,7 +175,7 @@ function domains_refresh($domain, $save=TRUE) {
  */
 function domains_renew($domain, $years=1) {
   try {
-    if ($domain->getController()->renew($domain->name, array('years' => $years))) {
+    if (domains_get_provider($domain->controller)->renew($domain->name, array('years' => $years))) {
       if (domains_refresh($domain)) {
         rules_invoke_event("domain_renew", $domain);
         return TRUE;
@@ -235,6 +235,38 @@ function domains_whois_types() {
 }
 
 /**
+ * Get domain namesevers
+ */
+function domains_get_namesevers($domain) {
+  $result = NULL;
+
+  try {
+    $result = domains_get_provider($domain)->getNameservers($domain->name);
+  }
+  catch (Exception $ex) {
+    _domains_handle_exception($ex);
+  }
+
+  return $result;
+}
+
+/**
+ * Set domain nameservers
+ */
+function domains_set_nameservers($domains, $ns) {
+  $result = NULL;
+
+  try {
+    $result = domains_get_provider($domain)->setNameservers($domain->name, $ns);
+  }
+  catch (Exception $ex) {
+    _domains_handle_exception($ex);
+  }
+
+  return $result;
+}
+
+/**
  * Purchase a domain and create an associated entity with it
  * 
  * @return DomainEntity purchased domain entity or FALSE if there is error
@@ -249,6 +281,7 @@ function domains_purchase($domain, $controller, $owner_uid=NULL) {
     'uid' => $owner_uid,
     'name' => $domain,
     'controller' => $controller,
+    'dns_provder' => 'custom', // TODO: make this configurable
   );
 
   try {
@@ -316,6 +349,8 @@ function domains_get_tlds($name_only=FALSE, $reset=FALSE) {
 function domains_get_provider($name) {
   $objects =& drupal_static(__FUNCTION__);
 
+  if (is_object($name)) $name = $name->controller;
+
   // lazy constructor
   if (empty($objects[$name])) {
     $info = domains_get_providers($name);
@@ -344,6 +379,55 @@ function domains_get_providers($name=NULL) {
 
     foreach (module_implements('domains_provider_info') as $module) {
       $hook_function = "{$module}_domains_provider_info";
+
+      $controllers += $hook_function();
+    }
+  }
+
+  if ($name) {
+    return isset($controllers[$name]) ? $controllers[$name] : NULL;
+  }
+  else {
+    return $controllers;
+  }
+}
+
+/**
+ * Get domain provider object
+ * @param string $name
+ * @return DomainProviderInterface
+ */
+function domains_get_dns_provider($name) {
+  $objects =& drupal_static(__FUNCTION__);
+
+  // lazy constructor
+  if (empty($objects[$name])) {
+    $info = domains_get_dns_providers($name);
+
+    if ($info) {
+      $class = $info['class'];
+      $objects[$name] = new $class($info);
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  return $objects[$name];
+}
+
+/**
+ * Get domain controller info
+ * @return array
+ */
+function domains_get_dns_providers($name=NULL) {
+  $controllers =& drupal_static(__FUNCTION__);
+
+  if ($controllers === NULL) {
+    $controllers = array();
+
+    foreach (module_implements('domains_dns_provider_info') as $module) {
+      $hook_function = "{$module}_domains_dns_provider_info";
 
       $controllers += $hook_function();
     }

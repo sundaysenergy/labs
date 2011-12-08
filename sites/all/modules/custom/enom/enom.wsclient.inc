@@ -127,6 +127,31 @@ function enom_default_wsclient_service() {
   $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
   $service->operations['GetDomainInfo'] = $operation;
 
+  // Operation: GetDNS
+  $operation = array();
+  $operation['label'] = 'Get DNS';
+  $operation['parameter']['sld'] = array('type' => 'text', 'label' => 'Second Level Domain');
+  $operation['parameter']['tld'] = array('type' => 'text', 'label' => 'Top Level Domain');
+  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'GetDNS');
+
+  $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
+  $service->operations['GetDNS'] = $operation;
+
+  // Operation: ModifyNS
+  $operation = array();
+  $operation['label'] = 'Modify NS';
+  $operation['parameter']['sld'] = array('type' => 'text', 'label' => 'Second Level Domain');
+  $operation['parameter']['tld'] = array('type' => 'text', 'label' => 'Top Level Domain');
+
+  for ($i = 1;$i <= 12;$i++) {
+    $operation['parameter']['ns' . $i] = array('type' => 'text', 'label' => 'Nameserver ' . $i, 'optional' => TRUE);
+  }
+
+  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'ModifyNS');
+
+  $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
+  $service->operations['ModifyNS'] = $operation;
+
   // Operation: GetContacts
   $operation = array();
   $operation['label'] = 'Get Contacts';

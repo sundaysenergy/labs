@@ -89,6 +89,11 @@ function domain_add_form($form, &$form_state, $domain) {
     '#default_value' => '',
   );
 
+  $form['dns_provider'] = array(
+    '#type' => 'value',
+    '#default_value' => 'custom',
+  );
+
   $form['expiration'] = array(
     '#type' => 'value',
     '#default_value' => '',
@@ -557,6 +562,91 @@ function domains_whois_form_submit($form, $form_state) {
   if (domains_update_whois($form['#domain'], $new_whois)) {
     drupal_set_message(t('Domain whois information has been updated.'));
   }
+}
+
+/**
+ * Domain dns form
+ */
+function domains_domain_dns_form($form, &$form_state, $domain) {
+  $form['#domain'] = $domain;
+
+  $form['provider'] = array(
+    '#title' => t('DNS Provider'),
+    '#description' => t('Please select a DNS provider for this domain.'),
+    '#type' => 'select',
+    '#options' => array(
+      'enom' => t('Enom'),
+      'dynect' => t('DynECT'),
+      'custom' => t('Custom'),
+    ),
+    '#default_value' => $domain->dns_provider,
+    '#ajax' => array(
+      'callback' => 'domains_domain_dns_form_ajax_submit',
+      'wrapper' => 'ns-div',
+    ),
+  );
+
+  $dns_provider = $domain->dns_provider;
+  $dns_provider = 'enom';
+  if (isset($form_state['values'])) {
+    $dns_provider = $form_state['values']['provider']; 
+  }
+  
+  $form['nameservers'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Namesevers'),
+  	'#collapsible' => TRUE,
+    '#prefix' => '<div id="ns-div">',
+    '#suffix' => '</div>',
+  );
+
+  // Show nameserver input.
+  if ($dns_provider == 'custom') {
+    $ns = domains_get_namesevers($domain);
+    for ($i = 0;$i < 6;$i++) {
+      $form['nameservers']["ns" . $i] = array(
+        '#type' => 'textfield',
+        '#title' => t('Namesever @i', array('@i' => $i+1)),
+        '#default_value' => isset($ns[$i]) ? $ns[$i] : '',
+      );
+    }
+  }
+  else {
+    $form['nameservers']['markup'] = array(
+      '#markup' => t('This option is only available for Custom provider.'),
+    );
+  }
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+function domains_domain_dns_form_ajax_submit($form, &$form_state) {
+  return $form['nameservers'];
+}
+
+function domains_domain_dns_form_submit($form, &$form_state) {
+  drupal_set_message(t('Domain nameserver has been updated.'));
+}
+
+
+/**
+ * Domain dns records form
+ */
+function domains_domain_dns_records_form($form, &$form_state, $domain) {
+  $form['dummy'] = array(
+    '#markup' => t('Not yet implemented'),
+  );
+  return $form;
+}
+
+function domains_domain_dns_records_form_submit() {
+  
 }
 
 // Inport domain from registrar

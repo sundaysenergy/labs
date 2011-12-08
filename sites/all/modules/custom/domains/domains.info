@@ -7,6 +7,7 @@ files[] = includes/DomainEntity.inc
 files[] = includes/DomainProviderInterface.inc
 files[] = includes/DomainProvider.inc
 files[] = includes/DomainProviderUi.inc
+files[] = includes/DomainDnsProvider.inc
 
 dependencies[] = entity
 dependencies[] = ctools

@@ -4,6 +4,7 @@ core = 7.x
 package = Services - clients
 
 files[] = includes/DynECTWSClientRestEndpoint.inc
+files[] = includes/DynECTDnsProvider.inc
 
 dependencies[] = wsclient
 dependencies[] = wsclient_rest

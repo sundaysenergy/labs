@@ -33,6 +33,19 @@ interface DomainProviderInterface {
   public function updateWhois($domain, $whois);
 
   /**
+   * Get nameservers for a domain
+   * @param string $domain
+   */
+  public function getNameservers($domain);
+
+  /**
+   * Update nameservers for a domain
+   * @param string $domain
+   * @param array $whois
+   */
+  public function setNameservers($domain, $ns);
+
+  /**
    * Renew a domain
    * @param string $domain domain name
    * @param array $options optional options
@@ -63,13 +76,13 @@ interface DomainProviderInterface {
    * @return array
    */
   public function getInfo();
-  
+
   /**
    * Get domain name
    * @return string Domain name and it ltd
    */
   public function getDomainName($domain);
-  
+
   /**
    * Get domain id
    * @return string An domain identify on provider

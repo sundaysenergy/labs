@@ -7,6 +7,7 @@ files[] = includes/HttpClientINIFormatter.inc
 files[] = includes/EnomWSClientRESTEndpoint.inc
 files[] = includes/EnomDomainProvider.inc
 files[] = includes/EnomDomainProviderUi.inc
+files[] = includes/EnomDnsProvider.inc
 
 dependencies[] = domains
 dependencies[] = wsclient

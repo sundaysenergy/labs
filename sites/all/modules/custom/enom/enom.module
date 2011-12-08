@@ -68,3 +68,15 @@ function enom_domains_provider_info() {
     ),
   );
 }
+
+/**
+ * Implements hook_domains_dns_provider_info()
+ */
+function enom_domains_dns_provider_info() {
+  return array(
+    'enom' => array(
+      'label' => t('Enom'),
+      'class' => 'EnomDnsProvider',
+    ),
+  );
+}
