@@ -52,3 +52,17 @@ function domains_schema() {
   
   return $schema;
 }
+
+/**
+ * Add DNS provider
+ */
+function domains_update_7001() {
+  db_add_field('domain', 'dns_provider', array(
+    'description' => 'Domain DNS Provider.',
+    'type' => 'varchar',
+    'length' => '255',
+    'not null' => FALSE,
+  ));
+
+  db_query('UPDATE {domain} SET dns_provider = ?', array('custom'));
+}
