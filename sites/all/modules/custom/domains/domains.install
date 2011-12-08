@@ -41,7 +41,7 @@ function domains_schema() {
         'description' => 'Domain DNS Provider.',
         'type' => 'varchar',
         'length' => '255',
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
     ),
     'indexes' => array(

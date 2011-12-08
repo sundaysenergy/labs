@@ -587,7 +587,6 @@ function domains_domain_dns_form($form, &$form_state, $domain) {
   );
 
   $dns_provider = $domain->dns_provider;
-  $dns_provider = 'enom';
   if (isset($form_state['values'])) {
     $dns_provider = $form_state['values']['provider']; 
   }
