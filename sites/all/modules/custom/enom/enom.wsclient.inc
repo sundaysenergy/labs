@@ -142,6 +142,7 @@ function enom_default_wsclient_service() {
   $operation['label'] = 'Modify NS';
   $operation['parameter']['sld'] = array('type' => 'text', 'label' => 'Second Level Domain');
   $operation['parameter']['tld'] = array('type' => 'text', 'label' => 'Top Level Domain');
+  $operation['parameter']['usedns'] = array('type' => 'text', 'label' => 'Use DNS', 'optional' => TRUE);
 
   for ($i = 1;$i <= 12;$i++) {
     $operation['parameter']['ns' . $i] = array('type' => 'text', 'label' => 'Nameserver ' . $i, 'optional' => TRUE);

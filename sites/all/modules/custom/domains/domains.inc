@@ -253,7 +253,7 @@ function domains_get_namesevers($domain) {
 /**
  * Set domain nameservers
  */
-function domains_set_nameservers($domains, $ns) {
+function domains_set_nameservers($domain, $ns) {
   $result = NULL;
 
   try {
@@ -395,7 +395,7 @@ function domains_get_providers($name=NULL) {
 /**
  * Get domain provider object
  * @param string $name
- * @return DomainProviderInterface
+ * @return DomainDnsProvider
  */
 function domains_get_dns_provider($name) {
   $objects =& drupal_static(__FUNCTION__);

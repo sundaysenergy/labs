@@ -219,7 +219,19 @@ class EnomDomainProvider extends DomainProvider {
    * @param array $whois
    */
   public function setNameservers($domain, $ns) {
-    
+    $domain_pieces = explode(".", $domain);
+
+    $params = array();
+    for ($i = 0; $i < count($ns);$i++) {
+      $params['ns' . ($i+1)] = $ns[$i];
+    }
+
+    $response = $this->invoke("ModifyNS", $params + array(
+      "tld" => $domain_pieces[1],
+      "sld" => $domain_pieces[0],
+    ));
+
+    return TRUE;
   }
 
   public function getTLDs() {

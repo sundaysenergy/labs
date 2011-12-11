@@ -13,5 +13,8 @@ abstract class DomainDnsProvider {
   /**
    * Check if the domain can be switch to this Dns provider
    */
-  public abstract function check($domain);
+  public function check($domain) {
+    // Most of the time, we just need to change DNS Nameservers.
+    return TRUE;
+  }
 }

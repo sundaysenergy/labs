@@ -300,14 +300,25 @@ function domains_domain_uri($domain) {
   );
 }
 
+/**
+ * Load domain entity
+ */
 function domains_domain_load($did = NULL, $reset = FALSE) {
   $dids = (isset ($did) ? array($did) : array());
-  $domains = domains_domain_load_multiple($dids, $reset);
+  $domains = domains_domain_load_multiple($dids, array(), $reset);
   return $domains ? reset($domains) : FALSE;
 }
 
 function domains_domain_load_multiple($dids = FALSE, $conditions = array(), $reset = FALSE) {
   return entity_load('domains_domain', $dids, $conditions, $reset);
+}
+
+/**
+ * Load domain by its name
+ */
+function domains_domain_load_by_name($name, $reset = FALSE) {
+  $domains = domains_domain_load_multiple(NULL, array('name' => $name), $reset);
+  return $domains ? reset($domains) : FALSE;
 }
 
 /**

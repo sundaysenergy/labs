@@ -595,6 +595,7 @@ function domains_domain_dns_form($form, &$form_state, $domain) {
     '#type' => 'fieldset',
     '#title' => t('Namesevers'),
   	'#collapsible' => TRUE,
+    '#tree' => TRUE,
     '#prefix' => '<div id="ns-div">',
     '#suffix' => '</div>',
   );
@@ -603,10 +604,11 @@ function domains_domain_dns_form($form, &$form_state, $domain) {
   if ($dns_provider == 'custom') {
     $ns = domains_get_namesevers($domain);
     for ($i = 0;$i < 6;$i++) {
-      $form['nameservers']["ns" . $i] = array(
+      $form['nameservers'][$i] = array(
         '#type' => 'textfield',
         '#title' => t('Namesever @i', array('@i' => $i+1)),
         '#default_value' => isset($ns[$i]) ? $ns[$i] : '',
+        '#required' => $i < 2, // At least have two available namesevers.
       );
     }
   }
@@ -629,8 +631,30 @@ function domains_domain_dns_form_ajax_submit($form, &$form_state) {
   return $form['nameservers'];
 }
 
+/**
+ * DNS nameserver form callback
+ */
 function domains_domain_dns_form_submit($form, &$form_state) {
-  drupal_set_message(t('Domain nameserver has been updated.'));
+  $domain = $form['#domain'];
+  $new_provider = $form_state['values']['provider'];
+  $success = NULL;
+  if ($new_provider == 'custom') {
+    $success = domains_set_nameservers($domain, array_filter($form_state['values']['nameservers']));
+  }
+  elseif ($new_provider != $domain->dns_provider) {
+    try {
+      $success = domains_get_dns_provider($new_provider)->activate($domain->name);
+    }
+    catch (Exception $ex) {
+      _domains_handle_exception($ex);
+    }
+  }
+
+  if (TRUE === $success) {
+    $domain->dns_provider = $new_provider;
+    domains_domain_save($domain);
+    drupal_set_message(t('Domain nameserver has been updated.'));
+  }
 }
 
 
