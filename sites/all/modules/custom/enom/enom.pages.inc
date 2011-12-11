@@ -19,12 +19,13 @@ function enom_page() {
     'tld' => 'com',
   );
   #$domains = enom_interface_command('check', $args);
-  
-  #$p = domains_get_provider('enom')->check(array('randomtimeabcd.com', 'defghijklmn123.net'));
-  #$p = domains_get_provider('enom')->getTLDs();
-  $p = domains_get_provider('enom')->invoke('GetAllAccountInfo');
-  #$s = _enom_service();
-  #$p = $s->invoke("GetOrderDetail", array('orderid' => '157771821'));
+
+  $p = domains_get_provider('enom')->invoke('ModifyNS', array(
+    'sld' => 'uniquedomain-1111',
+    'tld' => 'com',
+    'ns1' => 'ns1.p09.dynect.net',
+    'ns2' => 'ns2.p09.dynect.net',
+  ));
   
   return kpr($p, TRUE);
 }

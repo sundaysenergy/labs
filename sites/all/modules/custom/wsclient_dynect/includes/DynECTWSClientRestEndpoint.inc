@@ -9,6 +9,10 @@ class DynECTWSClientRestEndpoint extends WSClientRESTEndpoint {
     if($operation_name != 'session' && empty($auth_token)) {
       $this->_getToken();
       $auth_token = $this->getToken();
+
+      if (!$auth_token) {
+        return FALSE;
+      }
     }
     $operation = $this->service->operations[$operation_name];
     $operation_url = isset($operation['url']) ? $operation['url'] : '';
@@ -45,12 +49,20 @@ class DynECTWSClientRestEndpoint extends WSClientRESTEndpoint {
           'Content-Type' => array('application/json'),
           'Auth-Token' => array($auth_token),
         ),
+        'options' => array(
+          'curlopts' => array(
+            CURLOPT_SSL_VERIFYPEER => FALSE,
+          ),
+        ),
       )));
       return $response;
     }
     catch (HttpClientException $e) {
       watchdog('dynECT', 'Error invoking the REST service %name, operation %operation: %error', array('%name' => $this->service->label, '%operation' => $operation_name, '%error' => $e->getMessage()), WATCHDOG_ERROR);
-      return $e->getResponse();
+
+      // Cause clone error on PHP 5.3.
+      //return $e->getResponse();
+      return FALSE;
     }
   }
   

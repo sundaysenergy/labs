@@ -7,6 +7,7 @@ abstract class DomainDnsProvider {
 
   /**
    * Activate a domain to use with this Dns provider
+   * @return array Nameservers
    */
   public abstract function activate($domain);
 

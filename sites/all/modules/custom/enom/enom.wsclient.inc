@@ -153,6 +153,26 @@ function enom_default_wsclient_service() {
   $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
   $service->operations['ModifyNS'] = $operation;
 
+  // Operation: CheckNSStatus
+  $operation = array();
+  $operation['label'] = 'Check NS Status';
+  $operation['parameter']['checknsname'] = array('type' => 'text', 'label' => 'Nameserver name');
+  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'CheckNSStatus');
+
+  $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
+  $service->operations['CheckNSStatus'] = $operation;
+
+  // Operation: RegisterNameServer
+  $operation = array();
+  $operation['label'] = 'Register Nameserver';
+  $operation['parameter']['nsname'] = array('type' => 'text', 'label' => 'Nameserver');
+  $operation['parameter']['ip'] = array('type' => 'text', 'label' => 'IP Address');
+  $operation['parameter']['add'] = array('type' => 'hidden', 'default value' => 'true');
+  $operation['parameter']['command'] = array('type' => 'hidden', 'default value' => 'RegisterNameServer');
+
+  $operation['result'] = array('type' => 'enom_result', 'label' => 'Enom result');
+  $service->operations['RegisterNameServer'] = $operation;
+
   // Operation: GetContacts
   $operation = array();
   $operation['label'] = 'Get Contacts';

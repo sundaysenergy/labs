@@ -26,12 +26,10 @@ function wsclient_dynect_zone_detail($zone) {
   $detail = $service->get_all_record($zone);
   $records = array();
   if($detail['status'] == 'success') {
-    foreach($detail['data'] as $record) {
-      $record = str_replace('/REST/', '', $record);
-      $tmp = explode('/', $record);
-      $record_type = $tmp[0];
-      array_shift($tmp);
-      $record_detail = $service->get_record($record_type, implode('/', $tmp));
+    foreach($detail['data'] as $record_uri) {
+      $record = _wsclient_dynect_record_query($record_uri);
+
+      $record_detail = $service->get_record($record['record_type'], $record['query']);
       if($record_detail['status'] == 'success') {
         $data = $record_detail['data'];
         $list = $data['rdata'];

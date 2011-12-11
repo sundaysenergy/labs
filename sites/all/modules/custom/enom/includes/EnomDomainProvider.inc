@@ -210,7 +210,7 @@ class EnomDomainProvider extends DomainProvider {
       "sld" => $domain_pieces[0],
     ));
 
-    return $response['DNS'];
+    return isset($response['DNS']) ? $response['DNS'] : NULL;
   }
 
   /**
@@ -222,8 +222,28 @@ class EnomDomainProvider extends DomainProvider {
     $domain_pieces = explode(".", $domain);
 
     $params = array();
-    for ($i = 0; $i < count($ns);$i++) {
-      $params['ns' . ($i+1)] = $ns[$i];
+    $i = 1;
+    foreach ($ns as $name => $ip) {
+      if (is_numeric($name)) {
+        $name = $ip;
+        $ip = NULL;
+      }
+
+      /*$response = $this->invoke('CheckNSStatus', array('checknsname' => $name), FALSE);
+      if (!$response) {
+        if ($ip) {
+          $this->invoke('RegisterNameServer', array(
+            'nsname' => $name,
+            'ip' => $ip,
+          ));
+        }
+        else {
+          throw new Exception("Unable to register nameserver.");
+        }
+      }*/
+
+      $params['ns' . ($i+1)] = $name;
+      $i++;
     }
 
     $response = $this->invoke("ModifyNS", $params + array(

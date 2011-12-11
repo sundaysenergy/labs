@@ -624,15 +624,22 @@ function domains_domain_dns_form_ajax_submit($form, &$form_state) {
 function domains_domain_dns_form_submit($form, &$form_state) {
   $domain = $form['#domain'];
   $new_provider = $form_state['values']['provider'];
-  $success = NULL;
-  if ($new_provider == 'custom') {
-    $success = domains_set_nameservers($domain, array_filter($form_state['values']['nameservers']));
-  } elseif ($new_provider != $domain->dns_provider) {
-    try {
-      $success = domains_get_dns_provider($new_provider)->activate($domain->name);
-    } catch (Exception $ex) {
-      _domains_handle_exception($ex);
+  $success = TRUE;
+  $ns = NULL;
+  
+  try {
+    if ($new_provider == 'custom') {
+      $ns = array_filter($form_state['values']['nameservers']);
+    } elseif ($new_provider != $domain->dns_provider) {
+      $ns = domains_get_dns_provider($new_provider)->activate($domain->name);
     }
+
+    if (is_array($ns)) {
+      $success = domains_set_nameservers($domain, $ns);
+    }
+  } catch (Exception $ex) {
+    _domains_handle_exception($ex);
+    $success = FALSE;
   }
 
   if (TRUE === $success) {

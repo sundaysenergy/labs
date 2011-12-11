@@ -281,7 +281,7 @@ function domains_purchase($domain, $controller, $owner_uid=NULL) {
     'uid' => $owner_uid,
     'name' => $domain,
     'controller' => $controller,
-    'dns_provder' => 'custom', // TODO: make this configurable
+    'dns_provider' => 'custom', // TODO: make this configurable
   );
 
   try {
