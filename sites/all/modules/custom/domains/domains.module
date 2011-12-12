@@ -6,7 +6,6 @@
  * @TODO: Views integration, use it for page /domain
  * @TODO: Schema: rename domain to domains_domain (domain module may used this)
  */
-
 define('DOMAINS_ADMIN_URL', 'admin/config/domains');
 
 module_load_include('inc', 'domains');
@@ -97,6 +96,15 @@ function domains_menu() {
     'access arguments' => array('edit domain dns'),
     'type' => MENU_LOCAL_TASK,
   );
+  $items['domain/%domains_domain/delete'] = array(
+    'title' => 'Delete',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('domains_domain_delete_confirm', 1),
+    'access arguments' => array('delete domain'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  );
 
   $items['domain/add'] = array(
     'title' => 'Add domain',
@@ -121,7 +129,7 @@ function domains_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
-  $time = 30*24*60*60; // 1 Month.
+  $time = 30 * 24 * 60 * 60; // 1 Month.
   $items['domain/expiring_soon'] = array(
     'title' => 'Domains Expiring Soon',
     'file' => 'domains.pages.inc',
@@ -140,7 +148,7 @@ function domains_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
   );
-  
+
   // Import domain
   $items['domain/import'] = array(
     'title' => 'Import Your Domains',
@@ -160,10 +168,10 @@ function domains_menu() {
 
   // Submit a form without a page reload.
   $items['domain/register'] = array(
-    'title'   => 'Register A Domain',
-    'file'    => 'domains.pages.inc',
-    'page callback'   => 'drupal_get_form',
-    'page arguments'  => array('domains_register_form'),
+    'title' => 'Register A Domain',
+    'file' => 'domains.pages.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('domains_register_form'),
     'access callback' => TRUE,
     'type' => MENU_NORMAL_ITEM,
   );
@@ -205,6 +213,9 @@ function domains_permission() {
     'edit domain dns' => array(
       'title' => t('Edit domain DNS'),
     ),
+    'delete domain' => array(
+      'title' => t('Delete domain'),
+    ),
   );
 }
 
@@ -238,7 +249,7 @@ function domains_entity_info() {
     ),
     'static cache' => TRUE,
     'bundles' => array(
-      'domain'=> array(
+      'domain' => array(
         'label' => 'Domain',
         'admin' => array(
           'path' => 'admin/config/domains/manage',
@@ -249,11 +260,11 @@ function domains_entity_info() {
     'view modes' => array(
       'full' => array(
         'label' => t('Full content'),
-        'custom settings' =>  FALSE,
+        'custom settings' => FALSE,
       ),
     )
   );
-  
+
   return $info;
 }
 
@@ -304,7 +315,7 @@ function domains_domain_uri($domain) {
  * Load domain entity
  */
 function domains_domain_load($did = NULL, $reset = FALSE) {
-  $dids = (isset ($did) ? array($did) : array());
+  $dids = (isset($did) ? array($did) : array());
   $domains = domains_domain_load_multiple($dids, array(), $reset);
   return $domains ? reset($domains) : FALSE;
 }
@@ -362,12 +373,11 @@ function domains_domain_set_properties($domain, $name, $value) {
   }
 }
 
-
 function _domains_domain_inport_process($domain_name, $provider_name, &$context) {
   global $user;
   $provider = domains_get_provider($provider_name);
   $info = $provider->query($domain_name);
-  
+
   $values = array(
     'name' => $domain_name,
     'uid' => $user->uid,
@@ -378,7 +388,7 @@ function _domains_domain_inport_process($domain_name, $provider_name, &$context)
   // Save entity
   $domain = entity_create('domains_domain', $values);
   $domain->save();
-  
+
   $context['results'][] = check_plain($domain->name);
   $context['message'] = t('Import domain @name', array('@name' => $domain->name));
 }
@@ -388,12 +398,50 @@ function domains_domain_inport_process_finished($success, $results, $operations)
     // Here we could do something meaningful with the results.
     // We just display the number of nodes we processed...
     $message = count($results) . ' domain inported.';
-  }
-  else {
+  } else {
     // An error occurred.
     // $operations contains the operations that remained unprocessed.
     $error_operation = reset($operations);
     $message = 'An error occurred while processing ' . $error_operation[0] . ' with arguments :' . print_r($error_operation[0], TRUE);
   }
   drupal_set_message($message);
+}
+
+/**
+ * Delete domain by domain id
+ * 
+ * @param type $did 
+ */
+function domains_domain_delete($did) {
+  domains_domain_delete_multiple(array($did));
+}
+
+/**
+ * Delete domain by multi domain id
+ * 
+ * @param type $dids 
+ */
+function domains_domain_delete_multiple($dids) {
+  $transaction = db_transaction();
+  if (!empty($dids)) {
+    $domains = domains_domain_load_multiple($dids, array());
+
+    try {
+      foreach ($domains as $did => $domain) {
+        module_invoke_all('entity_delete', $domain, 'domains_domain');
+        field_attach_delete('domains_domain', $domain);
+
+        //Delete all domain from array id after call some hook
+        db_delete('domain')
+                ->condition('id', $dids, 'IN')
+                ->execute();
+      }
+    } catch (Exception $e) {
+      $transaction->rollback();
+      watchdog_exception('domains_domain', $e);
+      throw $e;
+    }
+    // Clear the page and block and node_load_multiple caches.
+    entity_get_controller('domains_domain')->resetCache();
+  }
 }

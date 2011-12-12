@@ -12,21 +12,20 @@ function domains_dashboard_page($time = 0) {
   global $user;
   $own_domain_query = new EntityFieldQuery();
   $own_domain_query = $own_domain_query->entityCondition('entity_type', 'domains_domain')
-    ->propertyCondition('uid', $user->uid);
+          ->propertyCondition('uid', $user->uid);
 
   // Get expiring soon or expired
-  if(!empty($time)) {
-    if($time > 0) {
+  if (!empty($time)) {
+    if ($time > 0) {
       // Get time expiring of domain <= $time
       $own_domain_query = $own_domain_query->propertyCondition('expiration', REQUEST_TIME + $time, '<=');
-    }
-    else {
+    } else {
       $own_domain_query = $own_domain_query->propertyCondition('expiration', REQUEST_TIME, '<');
     }
   }
   $own_domains = $own_domain_query->execute();
   $domains = array();
-  if(isset($own_domains['domains_domain'])) {
+  if (isset($own_domains['domains_domain'])) {
     $results = domains_domain_load_multiple(array_keys($own_domains['domains_domain']));
     foreach ($results as $domain) {
       $domains[] = l($domain->name, "domain/" . $domain->id);
@@ -34,8 +33,8 @@ function domains_dashboard_page($time = 0) {
   }
 
   return theme('item_list', array(
-    'items' => $domains,
-  ));
+            'items' => $domains,
+          ));
 }
 
 function domains_register_process_page() {
@@ -58,10 +57,10 @@ function domains_domain_page_view($domain, $view_mode = 'full') {
  * Add domain menu callback
  */
 function domains_domain_add_callback() {
-  $domain = (object) array (
-    'id' => '',
-    'type' => 'domains_domain',
-    'note' => '',
+  $domain = (object) array(
+            'id' => '',
+            'type' => 'domains_domain',
+            'note' => '',
   );
 
   return drupal_get_form('domain_add_form', $domain);
@@ -83,7 +82,7 @@ function domain_add_form($form, &$form_state, $domain) {
     '#type' => 'value',
     '#default_value' => $user->uid,
   );
-  
+
   $form['controller'] = array(
     '#type' => 'value',
     '#default_value' => '',
@@ -113,31 +112,27 @@ function domain_add_form($form, &$form_state, $domain) {
  */
 function domain_add_form_validate($form, &$form_state) {
   $form_state['values']['name'] = strtolower($form_state['values']['name']);
-  $domain = $form_state['values']['name']; 
+  $domain = $form_state['values']['name'];
 
   // Validate domain name across system and provider
   if (!domains_validate_name($domain, FALSE)) {
     form_set_error('name', t('Please enter a valid domain like example.com'));
-  }
-  else {
+  } else {
     if (count(entity_load('domains_domain', FALSE, array('name' => $domain)))) {
       form_set_error('name', t('Domain @domain already existed in the system.', array('@domain' => $domain)));
-    }
-    else {
+    } else {
       $info = domains_find_domain($form_state['values']['name']);
 
       if ($info === FALSE) {
         form_set_error('name', t('Unable to validate your domain name.'));
-      }
-      else if (count($info)) {
+      } else if (count($info)) {
         // Use the first provider for now.
         foreach ($info as $controller => $domain_info) {
           $form_state['values']['controller'] = $controller;
           $form_state['values']['expiration'] = $domain_info['expiration'];
           break;
         }
-      }
-      else {
+      } else {
         form_set_error('name', t('Domain @domain is not registered with any provider. Please use domain register form to regsiter new domain.', array('@domain' => $domain)));
       }
     }
@@ -180,15 +175,14 @@ function domains_register_form($form, &$form_state) {
   if (isset($form_state['values']['domain'])) {
     // expand the domains if necessary
     $check_domain = $form_state['values']['domain'];
-    
+
     if (strpos($check_domain, '.') === FALSE) {
       $domains = array();
-      
+
       foreach (domains_get_tlds(TRUE) as $tld) {
         $domains[] = $check_domain . ".$tld";
       }
-    }
-    else {
+    } else {
       $domains = array($check_domain);
     }
 
@@ -240,11 +234,11 @@ function domains_register_form($form, &$form_state) {
   // Populate domain data into form.
   if (!empty($check_result)) {
     $has_avai = FALSE;
-    
+
     $form['results']['domains'] = array(
-      '#type'   => 'checkboxes',
+      '#type' => 'checkboxes',
       '#check_result' => $check_result,
-      '#title'  => t('Available Domains'),
+      '#title' => t('Available Domains'),
       '#options' => array(),
       '#default_value' => !empty($form_state['values']['domains']) ? $form_state['values']['domains'] : array(),
     );
@@ -259,7 +253,7 @@ function domains_register_form($form, &$form_state) {
 
     if ($has_avai) {
       $form['results']['results_markup']['#markup'] = t('Please tick on the domain you would like to register then click purchase.');
-      
+
       $form['results']['purchase'] = array(
         '#type' => 'button',
         '#ajax' => array(
@@ -271,8 +265,7 @@ function domains_register_form($form, &$form_state) {
       if (user_is_anonymous()) {
         $form['results']['purchase']['#value'] = t('Register or login to purchase');
       }
-    }
-    else {
+    } else {
       $form['results']['results_markup']['#markup'] = t('There is no available domains match your search criteria.');
       unset($form['results']['domains']);
     }
@@ -288,7 +281,7 @@ function domains_register_form($form, &$form_state) {
  */
 function domains_register_form_validate($form, &$form_state) {
   $domain = $form_state['values']['domain'];
-  
+
   if (!domains_validate_name($domain, TRUE)) {
     form_set_error('domain', t('Please enter a valid domain like example.com'));
   }
@@ -312,13 +305,13 @@ function domains_register_form_purchase_ajax_submit($form, &$form_state) {
   $commands = array();
 
   $selected_domains = array();
-  
+
   foreach ($form_state['values']['domains'] as $domain => $checked) {
     if ($checked) {
       $selected_domains[] = $domain;
     }
   }
-  
+
   if (!user_is_anonymous()) {
     if (!empty($selected_domains)) {
       ctools_include('ajax', 'ctools');
@@ -342,23 +335,20 @@ function domains_register_form_purchase_ajax_submit($form, &$form_state) {
 
       if (FALSE == $succeed) {
         $commands[] = ajax_command_alert(t('There were an error while we trying to purchase your selected domains. Please contact administrator for more information.'));
-      }
-      else {
+      } else {
         drupal_set_message(t('You have sucessfully purchase @count domain(s) to your account.', array('@count' => count($selected_domains))));
         $commands[] = ctools_ajax_command_redirect('domain');
       }
-    }
-    else {
+    } else {
       $commands[] = ajax_command_alert(t('Please tick on the domain you want to purchase.'));
     }
-  }
-  else {
+  } else {
     ctools_include('object-cache');
     ctools_include('ajax');
-    
+
     # Cache form values
     $register = new stdClass();
-    $register->domain  = $form_state['values']['domain'];
+    $register->domain = $form_state['values']['domain'];
     $register->domains = $form_state['values']['domains'];
     ctools_object_cache_set('domains', 'register-domains-selected', $register);
 
@@ -377,7 +367,7 @@ function domains_renew_form($form, $form_state, $domain) {
     '#type' => 'value',
     '#value' => $domain,
   );
-  
+
   $form['expiration'] = array(
     '#type' => 'item',
     '#title' => t('Expiration Date'),
@@ -417,12 +407,11 @@ function domains_renew_form($form, $form_state, $domain) {
 function domains_renew_form_submit($form, $form_state) {
   $domain = $form_state['values']['domain'];
   $years = $form_state['values']['options']['years'];
-  
+
   if (domains_renew($domain, $years)) {
     drupal_set_message(t('You have renewed your domain successfully.'));
     drupal_goto('domain/' . $domain->id);
-  }
-  else {
+  } else {
     drupal_set_message(t('There was an error while renewing your domain. Please try again later.'), 'error');
   }
 }
@@ -442,7 +431,6 @@ function domains_whois_form($form, $form_state, $domain) {
   $form['#whois_types'] = array();
 
   // TODO: Implement copy from Registrant contact.
-
   // TODO: Data required by the Registry for some country codes. Use
   // GetExtAttributes to determine whether this TLD requires
   // extended attributes.
@@ -588,13 +576,13 @@ function domains_domain_dns_form($form, &$form_state, $domain) {
 
   $dns_provider = $domain->dns_provider;
   if (isset($form_state['values'])) {
-    $dns_provider = $form_state['values']['provider']; 
+    $dns_provider = $form_state['values']['provider'];
   }
-  
+
   $form['nameservers'] = array(
     '#type' => 'fieldset',
     '#title' => t('Namesevers'),
-  	'#collapsible' => TRUE,
+    '#collapsible' => TRUE,
     '#tree' => TRUE,
     '#prefix' => '<div id="ns-div">',
     '#suffix' => '</div>',
@@ -603,16 +591,15 @@ function domains_domain_dns_form($form, &$form_state, $domain) {
   // Show nameserver input.
   if ($dns_provider == 'custom') {
     $ns = domains_get_namesevers($domain);
-    for ($i = 0;$i < 6;$i++) {
+    for ($i = 0; $i < 6; $i++) {
       $form['nameservers'][$i] = array(
         '#type' => 'textfield',
-        '#title' => t('Namesever @i', array('@i' => $i+1)),
+        '#title' => t('Namesever @i', array('@i' => $i + 1)),
         '#default_value' => isset($ns[$i]) ? $ns[$i] : '',
         '#required' => $i < 2, // At least have two available namesevers.
       );
     }
-  }
-  else {
+  } else {
     $form['nameservers']['markup'] = array(
       '#markup' => t('This option is only available for Custom provider.'),
     );
@@ -640,12 +627,10 @@ function domains_domain_dns_form_submit($form, &$form_state) {
   $success = NULL;
   if ($new_provider == 'custom') {
     $success = domains_set_nameservers($domain, array_filter($form_state['values']['nameservers']));
-  }
-  elseif ($new_provider != $domain->dns_provider) {
+  } elseif ($new_provider != $domain->dns_provider) {
     try {
       $success = domains_get_dns_provider($new_provider)->activate($domain->name);
-    }
-    catch (Exception $ex) {
+    } catch (Exception $ex) {
       _domains_handle_exception($ex);
     }
   }
@@ -656,7 +641,6 @@ function domains_domain_dns_form_submit($form, &$form_state) {
     drupal_set_message(t('Domain nameserver has been updated.'));
   }
 }
-
 
 /**
  * Domain dns records form
@@ -677,10 +661,10 @@ function domains_domain_import_form($form, &$form_state) {
   ctools_add_js('ajax-responder', 'ctools');
   // Show all providers
   $providers = array();
-  foreach(module_implements('domains_provider_info') as $module) {
+  foreach (module_implements('domains_provider_info') as $module) {
     $providers = array_merge($providers, module_invoke($module, 'domains_provider_info'));
   }
-  
+
   $form['provider'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
@@ -688,7 +672,7 @@ function domains_domain_import_form($form, &$form_state) {
     '#title' => t('Select your provider'),
     '#tree' => TRUE,
   );
-  foreach($providers as $key => $provider) {
+  foreach ($providers as $key => $provider) {
     $form['provider'][$key] = array(
       '#type' => 'checkbox',
       '#title' => $provider['label'],
@@ -716,11 +700,11 @@ function domains_domain_import_form($form, &$form_state) {
   );
 
   // TODO: This function is not exception-safe.
-  if(isset($form_state['values'])) {
+  if (isset($form_state['values'])) {
     $values = $form_state['values'];
     $providers = array_filter($values['provider']);
     $header = array('name' => t('Name'));
-    foreach($providers as $provider_name => $status) {
+    foreach ($providers as $provider_name => $status) {
       $provider = domains_get_provider($provider_name);
       $info = $provider->getInfo();
       $form['domains'][$provider_name] = array(
@@ -733,7 +717,7 @@ function domains_domain_import_form($form, &$form_state) {
       $domains = $provider->getDomains();
       $checkeds = array();
       $options = array();
-      foreach($domains as $domain) {
+      foreach ($domains as $domain) {
         $domain_name = $provider->getDomainName($domain);
         $options[$domain_name] = array('name' => $domain_name);
 //        $form['domains'][$provider_name][$domain_name] = array(
@@ -745,12 +729,12 @@ function domains_domain_import_form($form, &$form_state) {
       // Get domain adrealy on our system
       $query = new EntityFieldQuery();
       $check = $query
-        ->entityCondition('entity_type', 'domains_domain')
-        ->propertyCondition('name', $checkeds, 'IN')
-        ->execute();
-      if(!empty($check['domains_domain'])) {
+              ->entityCondition('entity_type', 'domains_domain')
+              ->propertyCondition('name', $checkeds, 'IN')
+              ->execute();
+      if (!empty($check['domains_domain'])) {
         $adrealyed = domains_domain_load_multiple(array_keys($check['domains_domain']));
-        foreach($adrealyed as $domain) {
+        foreach ($adrealyed as $domain) {
           //unset($form['domains'][$provider_name][$domain->name]);
           unset($options[$domain->name]);
         }
@@ -777,7 +761,7 @@ function domains_domain_import_form($form, &$form_state) {
 }
 
 function domains_domain_import_form_validate($form, &$form_state) {
-  if(sizeof(array_filter($form_state['values']['provider'])) == 0) {
+  if (sizeof(array_filter($form_state['values']['provider'])) == 0) {
     form_set_error('provider', t('Please choose latest one provider'));
   }
 }
@@ -788,10 +772,10 @@ function domains_domain_import_list_ajax($form, &$form_state) {
 
 function domains_domain_import_domain_ajax($form, &$form_state) {
   $transfer = array();
-  foreach($form_state['values']['domains'] as $provider => $values) {
-    if(isset($values['domains'])) {
+  foreach ($form_state['values']['domains'] as $provider => $values) {
+    if (isset($values['domains'])) {
       $import = array_filter($values['domains']);
-      if(sizeof($import) > 0) {
+      if (sizeof($import) > 0) {
         $transfer[$provider] = $import;
       }
     }
@@ -808,8 +792,8 @@ function domains_domain_import_domain_ajax($form, &$form_state) {
 function domains_domain_import_process_form($form) {
   ctools_include('object-cache', 'ctools');
   $transfer = ctools_object_cache_get('import-domain', 'import-domain');
-  
-  foreach($transfer as $provider_name => $domain_list) {
+
+  foreach ($transfer as $provider_name => $domain_list) {
     $provider = domains_get_provider($provider_name);
     $info = $provider->getInfo();
     $form[$provider_name] = array(
@@ -817,25 +801,23 @@ function domains_domain_import_process_form($form) {
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       '#title' => $info['label'],
-      '#tree' => TRUE,      
+      '#tree' => TRUE,
     );
     $form[$provider_name]['domains'] = array(
       '#markup' => theme('item_list', array('items' => $domain_list)),
     );
   }
-  
-  return confirm_form($form,
-    t('Are you sure to import thoose domain?'),
-    'domain'
+
+  return confirm_form($form, t('Are you sure to import thoose domain?'), 'domain'
   );
 }
 
-function domains_domain_import_process_form_submit($form, &$form_state) {  
+function domains_domain_import_process_form_submit($form, &$form_state) {
   $operations = array();
   $transfer = ctools_object_cache_get('import-domain', 'import-domain');
-  foreach($transfer as $provider_name => $domain_list) {
+  foreach ($transfer as $provider_name => $domain_list) {
     $provider = domains_get_provider($provider_name);
-    foreach($domain_list as $domain) {
+    foreach ($domain_list as $domain) {
       $operations[] = array('_domains_domain_inport_process', array($domain, $provider_name));
     }
   }
@@ -843,10 +825,35 @@ function domains_domain_import_process_form_submit($form, &$form_state) {
     'operations' => $operations,
     'finished' => 'domains_domain_inport_process_finished',
   );
-  
+
   batch_set($batch);
   // Delete cache
   ctools_object_cache_clear('import-domain', 'import-domain');
   $form_state['redirect'] = 'domain';
   return;
+}
+
+/**
+ * Menu callback -- ask for confirmation of domain deletion
+ */
+function domains_domain_delete_confirm($form, &$form_state, $domain) {
+  $form['#domain'] = $domain;
+
+  $form['id'] = array('#type' => 'value', '#value' => $domain->id);
+  return confirm_form($form, t('Are you sure you want to delete %domain domain?', array('%domain' => $domain->name)), 'domain/' . $domain->id, t('This action cannot be undone.'), t('Delete'), t('Cancel')
+  );
+}
+
+/**
+ * Execute domain deletion
+ */
+function domains_domain_delete_confirm_submit($form, &$form_state) {
+  if ($form_state['values']['confirm']) {
+    $domain = domains_domain_load($form_state['values']['id']);
+    domains_domain_delete($form_state['values']['id']);
+    watchdog('domain', 'Deleted %domain domain.', array('%domain' => $domain->name));
+    drupal_set_message(t('Domain %domain has been deleted.', array('%domain' => $domain->name)));
+  }
+
+  $form_state['redirect'] = 'domain';
 }
