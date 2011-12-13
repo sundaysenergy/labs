@@ -5,7 +5,7 @@
  */
 class DynECTDnsProvider extends DomainDnsProvider {
 
-  public function activate($domain) {
+  public function activate($domain, $settings) {
     $response = $this->invoke('get_zone', array(
       'zone' => $domain,
     ), FALSE);

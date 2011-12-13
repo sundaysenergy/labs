@@ -393,55 +393,6 @@ function domains_get_providers($name=NULL) {
 }
 
 /**
- * Get domain provider object
- * @param string $name
- * @return DomainDnsProvider
- */
-function domains_get_dns_provider($name) {
-  $objects =& drupal_static(__FUNCTION__);
-
-  // lazy constructor
-  if (empty($objects[$name])) {
-    $info = domains_get_dns_providers($name);
-
-    if ($info) {
-      $class = $info['class'];
-      $objects[$name] = new $class($info);
-    }
-    else {
-      return FALSE;
-    }
-  }
-
-  return $objects[$name];
-}
-
-/**
- * Get domain controller info
- * @return array
- */
-function domains_get_dns_providers($name=NULL) {
-  $controllers =& drupal_static(__FUNCTION__);
-
-  if ($controllers === NULL) {
-    $controllers = array();
-
-    foreach (module_implements('domains_dns_provider_info') as $module) {
-      $hook_function = "{$module}_domains_dns_provider_info";
-
-      $controllers += $hook_function();
-    }
-  }
-
-  if ($name) {
-    return isset($controllers[$name]) ? $controllers[$name] : NULL;
-  }
-  else {
-    return $controllers;
-  }
-}
-
-/**
  * Utility function to handle exceptions
  */
 function _domains_handle_exception($exception) {

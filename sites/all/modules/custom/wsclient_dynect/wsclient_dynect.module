@@ -62,6 +62,7 @@ function wsclient_dynect_domains_dns_provider_info() {
     'dynect' => array(
       'label' => t('DynECT'),
       'class' => 'DynECTDnsProvider',
+      'record management' => TRUE,
     ),
   );
 }

@@ -9,6 +9,7 @@
 define('DOMAINS_ADMIN_URL', 'admin/config/domains');
 
 module_load_include('inc', 'domains');
+module_load_include('inc', 'domains', 'domains.dns');
 
 /**
  * Implements hook_menu()
@@ -78,7 +79,7 @@ function domains_menu() {
   );
   $items['domain/%domains_domain/dns'] = array(
     'title' => 'DNS',
-    'file' => 'domains.pages.inc',
+    'file' => 'domains.pages_dns.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('domains_domain_dns_form', 1),
     'access arguments' => array('edit domain dns'),
@@ -90,7 +91,7 @@ function domains_menu() {
   );
   $items['domain/%domains_domain/dns/records'] = array(
     'title' => 'Records',
-    'file' => 'domains.pages.inc',
+    'file' => 'domains.pages_dns.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('domains_domain_dns_records_form', 1),
     'access arguments' => array('edit domain dns'),
@@ -149,7 +150,6 @@ function domains_menu() {
     'weight' => 2,
   );
 
-  // Import domain
   $items['domain/import'] = array(
     'title' => 'Import Your Domains',
     'file' => 'domains.pages.inc',
