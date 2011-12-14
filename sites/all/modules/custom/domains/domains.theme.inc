@@ -35,12 +35,12 @@ function theme_domains_result_list($variables) {
  */
 function theme_domains_dns_records_form($variables) {
   $element = $variables['element'];
-  $header = array(t('Record'), t('Type'), t('Value'), t('Priority'));
+  $header = array(t('Name'), t('Type'), t('Value'), t('Priority'));
   $rows = array();
 
   foreach (element_children($element) as $index) {
     $row = array();
-    $row[] = render($element[$index]['record']);
+    $row[] = render($element[$index]['name']);
     $row[] = render($element[$index]['type']);
     $row[] = render($element[$index]['value']);
     $row[] = render($element[$index]['priority']);

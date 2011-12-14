@@ -9,7 +9,7 @@
  */
 function domains_dns_get_records($domain) {
   try {
-    return domains_dns_get_provider($domain)->getRecords($domain);
+    return domains_dns_get_provider($domain)->getRecords($domain->name);
   }
   catch (Exception $ex) {
     _domains_handle_exception($ex);

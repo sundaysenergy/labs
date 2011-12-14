@@ -96,47 +96,48 @@ function domains_domain_dns_form_submit($form, &$form_state) {
  */
 function domains_domain_dns_records_form($form, &$form_state, $domain) {
   $info = domains_dns_get_providers($domain->dns_provider);
-  $types = domains_dns_get_record_types($domain->dns_provider);
+  $types = array('' => t('--')) + domains_dns_get_record_types($domain->dns_provider);
 
   if (empty($info['record management'])) {
     drupal_set_message(t('This DNS provider does not support record management.'), 'error');
     return $form;
   }
 
-  //$records = domains_dns_get_records($domain);
-  $form_state['more'] = isset($form_state['more']) ? $form_state['more'] : 10;
+  if (empty($form_state['records'])) {
+    $records = domains_dns_get_records($domain);
+
+    usort($records, '_domains_dns_sort_record');
+  }
+  else {
+    $records = $form_state['records'];
+  }
+
+  $form_state['more'] = isset($form_state['more']) ? $form_state['more'] : 5;
   $form['records'] = array(
     '#tree' => TRUE,
     '#theme' => 'domains_dns_records_form',
   );
 
-  for ($i = 0; $i < $form_state['more'];$i++) {
-    $form['records'][$i]['record'] = array(
-      '#type' => 'textfield',
-      '#size' => 40,
-    );
-    $form['records'][$i]['type'] = array(
-      '#type' => 'select',
-      '#options' => $types
-    );
-    $form['records'][$i]['value'] = array(
-      '#type' => 'textfield',
-      '#size' => 40,
-    );
-    $form['records'][$i]['priority'] = array(
-      '#type' => 'textfield',
-      '#size' => 5,
-    );
+  $i = 0;
+  foreach ($records as $record) {
+    $form['records'][$i++] = domains_domain_dns_record_row($record, $types);
+  }
+
+  // Empty records.
+  for ($j = 0; $j < $form_state['more'];$j++, $i++) {
+    $form['records'][$i] = domains_domain_dns_record_row(NULL, $types);
   }
   
   $form['more'] = array(
     '#type' => 'submit',
     '#value' => t('More'),
     '#submit' => array('domains_domain_dns_records_more_submit'),
+    '#prefix' => '<div class="clearfix">',
+    '#suffix' => '</div>',
   );
 
   $form['actions'] = array('#type' => 'actions');
-  $form['submit'] = array('#type' => 'submit', '#value' => t('Submit'));
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Save'));
 
   return $form;
 }
@@ -149,6 +150,70 @@ function domains_domain_dns_records_more_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
 }
 
-function domains_domain_dns_records_form_submit() {
+function domains_domain_dns_records_form_validate($form, &$form_state) {
   
+}
+
+function domains_domain_dns_records_form_submit($form, &$form_state) {
+  dpm($form_state['values']);
+}
+
+function domains_domain_dns_record_row($record, $types) {
+  $row['#record'] = $record;
+
+  if ($record && !empty($record['readonly'])) {
+    $row['value'] = array(
+    	'#type' => 'item',
+    	'#markup' => isset($record['display']) ? $record['display'] : NULL,
+    );
+    $row['name'] = array(
+    	'#type' => 'item',
+    	'#markup' => isset($record['name']) ? $record['name'] : NULL,
+    );
+    $row['type'] = array(
+    	'#type' => 'item',
+    	'#markup' => $record['type'],
+    );
+    $row['priority'] = array(
+      '#type' => 'item',
+      '#markup' => isset($record['priority']) ? $record['priority'] : NULL,
+    );
+  }
+  else {
+    $row['name'] = array(
+      '#type' => 'textfield',
+      '#size' => 40,
+      '#default_value' => isset($record['name']) ? $record['name'] : NULL,
+    );
+    $row['type'] = array(
+      '#type' => 'select',
+      '#options' => $types,
+      '#default_value' => isset($record['type']) ? $record['type'] : NULL,
+    );
+    $row['value'] = array(
+    	'#type' => 'textfield',
+    	'#size' => 40,
+    	'#default_value' => isset($record['value']) ? $record['value'] : NULL,
+    );
+    $row['priority'] = array(
+      '#type' => 'textfield',
+      '#size' => 5,
+      '#default_value' => isset($record['priority']) ? $record['priority'] : NULL,
+    );
+  }
+
+  return $row;
+}
+
+function _domains_dns_sort_record($a, $b) {
+  if (!empty($a['readonly']) || !empty($b['readonly'])) {
+    if (empty($b['readonly'])) {
+      return -1;
+    }
+    elseif (empty($a['readonly'])) {
+      return 1;
+    }
+  }
+  
+  return strcmp($a['type'], $b['type']);
 }

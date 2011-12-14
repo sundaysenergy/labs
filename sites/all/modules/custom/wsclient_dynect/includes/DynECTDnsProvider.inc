@@ -48,9 +48,15 @@ class DynECTDnsProvider extends DomainDnsProvider {
   public function getRecords($domain) {
     $response = $this->invoke('get_all_record', array('zone' => $domain));
 
+    $result = array();
     foreach ($response['data'] as $record_uri) {
-      kpr($record_uri);
+      $record = _wsclient_dynect_get_record($this->getService(), $record_uri);
+      if ($record) {
+        $result[] = $this->normalizeRecord($record);
+      }
     }
+
+    return $result;
   }
 
   /**
@@ -81,6 +87,57 @@ class DynECTDnsProvider extends DomainDnsProvider {
    * Make record data return from DynECT compatible with Domains
    */
   public function normalizeRecord($record) {
+    $record['readonly'] = FALSE;
+
+    switch ($record['type']) {
+      case 'A':
+        $record['value'] = $record['rdata']['address'];
+        break;
+      case 'CNAME':
+        $record['value'] = $record['rdata']['cname'];
+        break;
+      case 'PTR':
+        $record['value'] = $record['rdata']['ptrdname'];
+        break;
+      case 'MX':
+        $record['value'] = $record['rdata']['exchange'];
+        $record['priority'] = $record['rdata']['preference'];
+        break;
+      case 'TXT':
+        $record['value'] = $record['rdata']['txtdata'];
+        break;
+
+      case 'NS':
+        $record['value'] = $record['rdata']['nsdname'];
+        $record['display'] = $record['value'];
+        $record['readonly'] = TRUE;
+        $record['name'] = $record['fqdn'];
+        break;
+
+      default:
+        $list = array();
+        foreach($record['rdata'] as $key => $value) {
+          $list[] = $key . ': ' . $value;
+        }
+
+        $record['readonly'] = TRUE;
+        $record['display'] = theme('item_list', array('items' => $list));
+
+        if ($record['type'] == 'SOA') {
+          $record['name'] = $record['fqdn'];
+        }
+
+        break;
+    }
+
+    // We don't want to repeat the full domain name again and again.
+    if (empty($record['name'])) {
+      $record['name'] = str_replace($record['zone'], "", $record['fqdn']);
+      if (substr($record['name'], -1) == '.') {
+        $record['name'] = substr($record['name'], 0, -1);
+      }
+    }
+
     return $record;
   }
 

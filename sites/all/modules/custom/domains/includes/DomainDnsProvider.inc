@@ -31,7 +31,7 @@ abstract class DomainDnsProvider {
    */
   public function getRecordTypes() {
     return array(
-      'A', 'AAAA', 'CNAME', 'MX', 'SOA', 'SPF', 'SRV', 'TXT'
+      'A', 'AAAA', 'CNAME', 'MX', 'NS', 'SRV', 'TXT', 'SPF', 'PTR', 'SOA',
     );
   }
 }
