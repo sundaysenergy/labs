@@ -25,7 +25,13 @@ function domains_dns_get_record_types($provider) {
     $provider = $provider->dns_provider;
   }
 
-  return domains_dns_get_provider($provider)->getRecordTypes();
+  $types = domains_dns_get_provider($provider)->getRecordTypes();
+  $result = array();
+  foreach ($types as $type) {
+    $result[$type] = $type;
+  }
+
+  return $result;
 }
 
 /**

@@ -29,3 +29,28 @@ function theme_domains_result_list($variables) {
   $title = t('Search Results');
   return theme('item_list', array('items' => $list, 'title' => $title));
 }
+
+/**
+ * Theme domain dns record form
+ */
+function theme_domains_dns_records_form($variables) {
+  $element = $variables['element'];
+  $header = array(t('Record'), t('Type'), t('Value'), t('Priority'));
+  $rows = array();
+
+  foreach (element_children($element) as $index) {
+    $row = array();
+    $row[] = render($element[$index]['record']);
+    $row[] = render($element[$index]['type']);
+    $row[] = render($element[$index]['value']);
+    $row[] = render($element[$index]['priority']);
+
+    $rows[] = $row;
+  }
+
+  return theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'sticky' => FALSE,
+  ));
+}

@@ -169,16 +169,3 @@ function wsclient_dynect_default_wsclient_service() {
   $services[$service->name] = $service;
   return $services;
 }
-
-function _wsclient_dynect_support_type() {
-  return array(
-    'ARecord' => 'A',
-    'AAAARecord' => 'AAAA',
-    'CNAMERecord' => 'CNAME',
-    'MXRecord' => 'MX',
-    'SOARecord' => 'SOA',
-    'SPFRecord' => 'SPF',
-    'SRVRecord' => 'SRV',
-    'TXTRecord' => 'TXT',
-  );
-}

@@ -228,6 +228,10 @@ function domains_theme() {
       'variables' => array('results' => NULL),
       'file' => 'domains.theme.inc',
     ),
+    'domains_dns_records_form' => array(
+      'render element' => 'element',
+      'file' => 'domains.theme.inc',
+    ),
   );
 }
 

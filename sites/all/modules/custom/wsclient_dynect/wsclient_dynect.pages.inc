@@ -22,29 +22,30 @@ function wsclient_dynect_zone() {
 
 function wsclient_dynect_zone_detail($zone) {
   $service = wsclient_service_load('dynect');
-  
+
   $detail = $service->get_all_record($zone);
   $records = array();
   if($detail['status'] == 'success') {
     foreach($detail['data'] as $record_uri) {
-      $record = _wsclient_dynect_record_query($record_uri);
+      $record_detail = _wsclient_dynect_get_record($service, $record_uri);
 
-      $record_detail = $service->get_record($record['record_type'], $record['query']);
-      if($record_detail['status'] == 'success') {
-        $data = $record_detail['data'];
-        $list = $data['rdata'];
-        if(in_array($data['record_type'], array('SOA', 'SRV'))) {
+      if($record_detail) {
+        $list = $record_detail['rdata'];
+        if(in_array($record_detail['type'], array('SOA', 'SRV', 'MX'))) {
           $list = array();
-          foreach($data['rdata'] as $key => $value) {
+          foreach($record_detail['rdata'] as $key => $value) {
             $list[] = $key . ': ' . $value;
           }
         }
         $records[] = array(
-          $data['fqdn'],
-          $data['record_type'],
-          $data['ttl'],
+          $record_detail['fqdn'],
+          $record_detail['type'],
+          $record_detail['ttl'],
           theme('item_list', array('items' => $list)),
         );
+      }
+      else {
+        // TODO: inform user that we can't get all records.
       }
     }
   }
@@ -53,7 +54,6 @@ function wsclient_dynect_zone_detail($zone) {
   );
   return theme('table', array('rows' => $records, 'header' => $header));
 }
-
 
 // Create new zone
 function wsclient_dynect_create_zone_form($form, $form_state) {

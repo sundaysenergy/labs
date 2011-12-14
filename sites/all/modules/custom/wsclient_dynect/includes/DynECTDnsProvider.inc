@@ -5,6 +5,11 @@
  */
 class DynECTDnsProvider extends DomainDnsProvider {
 
+  /**
+   * WSclient service
+   */
+  private $service;
+
   public function activate($domain, $settings) {
     $response = $this->invoke('get_zone', array(
       'zone' => $domain,
@@ -23,11 +28,12 @@ class DynECTDnsProvider extends DomainDnsProvider {
       ));
     }
 
-    // Return NS Server.
+    // Return NS Records for this domain.
     $ns = array();
     $response = $this->invoke('get_all_record', array('zone' => $domain));
     foreach ($response['data'] as $record_uri) {
       $record = _wsclient_dynect_record_query($record_uri);
+
       if ($record['record_type'] == 'NSRecord') {
         $record_detail = $this->invoke('get_record', $record);
         $host = substr($record_detail['data']['rdata']['nsdname'], 0, -1);
@@ -39,11 +45,19 @@ class DynECTDnsProvider extends DomainDnsProvider {
     return $ns;
   }
 
+  public function getRecords($domain) {
+    $response = $this->invoke('get_all_record', array('zone' => $domain));
+
+    foreach ($response['data'] as $record_uri) {
+      kpr($record_uri);
+    }
+  }
+
   /**
    * Invoke an operation
    */
   public function invoke($operation, $arguments, $exception=TRUE) {
-    $service = wsclient_service_load('dynect');
+    $service = $this->getService();
     $response = $service->invoke($operation, $arguments);
     if($response['status'] == 'success') {
       return $response;
@@ -61,5 +75,20 @@ class DynECTDnsProvider extends DomainDnsProvider {
         throw new DomainProviderException(t('Unable to perform service operations.', $error));
       }
     }
+  }
+
+  /**
+   * Make record data return from DynECT compatible with Domains
+   */
+  public function normalizeRecord($record) {
+    return $record;
+  }
+
+  public function getService() {
+    if (!$this->service) {
+      $this->service = wsclient_service_load('dynect');
+    }
+
+    return $this->service;
   }
 }

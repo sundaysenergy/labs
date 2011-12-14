@@ -96,6 +96,8 @@ function domains_domain_dns_form_submit($form, &$form_state) {
  */
 function domains_domain_dns_records_form($form, &$form_state, $domain) {
   $info = domains_dns_get_providers($domain->dns_provider);
+  $types = domains_dns_get_record_types($domain->dns_provider);
+
   if (empty($info['record management'])) {
     drupal_set_message(t('This DNS provider does not support record management.'), 'error');
     return $form;
@@ -105,12 +107,25 @@ function domains_domain_dns_records_form($form, &$form_state, $domain) {
   $form_state['more'] = isset($form_state['more']) ? $form_state['more'] : 10;
   $form['records'] = array(
     '#tree' => TRUE,
+    '#theme' => 'domains_dns_records_form',
   );
 
   for ($i = 0; $i < $form_state['more'];$i++) {
-    $form['records'][$i] = array(
+    $form['records'][$i]['record'] = array(
       '#type' => 'textfield',
-      '#title' => t('Record @i', array('@i' => $i+1)),
+      '#size' => 40,
+    );
+    $form['records'][$i]['type'] = array(
+      '#type' => 'select',
+      '#options' => $types
+    );
+    $form['records'][$i]['value'] = array(
+      '#type' => 'textfield',
+      '#size' => 40,
+    );
+    $form['records'][$i]['priority'] = array(
+      '#type' => 'textfield',
+      '#size' => 5,
     );
   }
   
