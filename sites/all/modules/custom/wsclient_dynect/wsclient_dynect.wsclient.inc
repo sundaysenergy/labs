@@ -165,7 +165,21 @@ function wsclient_dynect_default_wsclient_service() {
     'result' => array('type' => 'dynect_result', 'label' => 'Session Result'),
   );
   $service->operations['create_record'] = $create_record_operations;
-  
+
+  // Delete a record
+  $operation = array(
+    'label' => 'Delete A Record',
+    'type' => 'DELETE',
+    'url' => '/',
+    'parameter' => array(
+      'record_type' => array('type' => 'text', 'label' => 'Record type: ARecord, AAAARecord, CERTRecord, ...'),
+      'query' => array('type' => 'text', 'label' => 'Full query of the record'),
+    ),
+    'merge_url' => array('record_type', 'query'),
+    'result' => array('type' => 'dynect_result', 'label' => 'Session Result'),
+  );
+  $service->operations['delete_record'] = $operation;
+
   $services[$service->name] = $service;
   return $services;
 }

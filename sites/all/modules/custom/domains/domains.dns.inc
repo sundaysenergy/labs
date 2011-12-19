@@ -5,11 +5,35 @@
  */
 
 /**
- * Get records for a domain
+ * Get records for a domain.
  */
 function domains_dns_get_records($domain) {
   try {
     return domains_dns_get_provider($domain)->getRecords($domain->name);
+  }
+  catch (Exception $ex) {
+    _domains_handle_exception($ex);
+  }
+}
+
+/**
+ * Mass update on domain dns records.
+ */
+function domains_dns_update_records($domain, $updates) {
+  try {
+    return domains_dns_get_provider($domain)->updateRecords($domain->name, $updates);
+  }
+  catch (Exception $ex) {
+    _domains_handle_exception($ex);
+  }
+}
+
+/**
+ * Add a new record.
+ */
+function domains_dns_add_record($domain, $record) {
+  try {
+    return domains_dns_get_provider($domain)->addRecord($domain->name, $record);
   }
   catch (Exception $ex) {
     _domains_handle_exception($ex);

@@ -27,11 +27,49 @@ abstract class DomainDnsProvider {
   }
 
   /**
+   * Perform mass update for DNS records
+   */
+  public function updateRecords($domain, $updates) {
+    foreach ($updates['new'] as $record) {
+      $this->addRecord($domain, $record);
+    }
+
+    foreach ($updates['delete'] as $record) {
+      $this->deleteRecord($domain, $record);
+    }
+
+    foreach ($updates['change'] as $record) {
+      $this->updateRecord($domain, $record['#record'], $record);
+    }
+  }
+
+  /**
+   * Add a new record to domain
+   */
+  public function addRecord($domain, $record) {
+    return FALSE;
+  }
+
+  /**
+   * Update an exist record
+   */
+  public function updateRecord($domain, $record, $update) {
+    return FALSE;
+  }
+
+  /**
+   * Delete an exist record
+   */
+  public function deleteRecord($domain, $record) {
+    return FALSE;
+  }
+  
+  /**
    * Get supported record types
    */
   public function getRecordTypes() {
     return array(
-      'A', 'AAAA', 'CNAME', 'MX', 'NS', 'SRV', 'TXT', 'SPF', 'PTR', 'SOA',
+      'A', 'AAAA', 'CNAME', 'MX', 'NS', 'SRV', 'TXT', 'SPF'
     );
   }
 }

@@ -8,7 +8,7 @@ function domains_domain_dns_form($form, &$form_state, $domain) {
 
   $form['#domain'] = $domain;
   $form['#providers'] = $providers;
-  
+
   $form['provider'] = array(
     '#title' => t('DNS Provider'),
     '#description' => t('Please select a DNS provider for this domain.'),
@@ -112,10 +112,17 @@ function domains_domain_dns_records_form($form, &$form_state, $domain) {
     $records = $form_state['records'];
   }
 
-  $form_state['more'] = isset($form_state['more']) ? $form_state['more'] : 5;
+  $form['#domain'] = $domain;
+
   $form['records'] = array(
     '#tree' => TRUE,
     '#theme' => 'domains_dns_records_form',
+  );
+  
+  $form['#attached'] = array(
+    'js' => array(
+      drupal_get_path('module', 'domains') . '/js/dns_form.js',
+     ),
   );
 
   $i = 0;
@@ -124,6 +131,7 @@ function domains_domain_dns_records_form($form, &$form_state, $domain) {
   }
 
   // Empty records.
+  $form_state['more'] = isset($form_state['more']) ? $form_state['more'] : 5;
   for ($j = 0; $j < $form_state['more'];$j++, $i++) {
     $form['records'][$i] = domains_domain_dns_record_row(NULL, $types);
   }
@@ -150,12 +158,59 @@ function domains_domain_dns_records_more_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
 }
 
+/**
+ * DNS form validation callback
+ */
 function domains_domain_dns_records_form_validate($form, &$form_state) {
-  
+  foreach ($form_state['values']['records'] as $element_index => $record) {
+    switch ($record['type']) {
+      case 'A':
+      case 'CNAME':
+        if (empty($record['value'])) {
+          form_set_error("records][$element_index][value", t('Record value is missing.'));
+        }
+      break;
+    }
+  }
 }
 
 function domains_domain_dns_records_form_submit($form, &$form_state) {
-  dpm($form_state['values']);
+  $domain = $form['#domain'];
+
+  // Array to track records state.
+  $updates = array(
+    'new' => array(),
+    'delete' => array(),
+    'change' => array(),
+  );
+
+  foreach ($form_state['values']['records'] as $element_index => $record) {
+    $record['#record'] = $form['records'][$element_index]['#record'];
+
+    if ($record['#record']) {
+      if ($record['delete']) {
+        $updates['delete'][] = $record;
+      }
+      else {
+        // Check if the record is changed or not.
+        foreach (array('name', 'type', 'value', 'priority') as $property) {
+          if ($record[$property] != $record['#record'][$property]) {
+            $updates['change'][] = $record;
+            break;
+          }
+        }
+      }
+    }
+    else {
+      if ($record['type']) {
+        $updates['new'][] = $record;
+      }
+    }
+  }
+
+  if (domains_dns_update_records($domain, $updates)) {
+    drupal_set_message('DNS Records have been updated.');
+  }
 }
 
 function domains_domain_dns_record_row($record, $types) {
@@ -163,16 +218,16 @@ function domains_domain_dns_record_row($record, $types) {
 
   if ($record && !empty($record['readonly'])) {
     $row['value'] = array(
-    	'#type' => 'item',
-    	'#markup' => isset($record['display']) ? $record['display'] : NULL,
+      '#type' => 'item',
+      '#markup' => isset($record['display']) ? $record['display'] : NULL,
     );
     $row['name'] = array(
-    	'#type' => 'item',
-    	'#markup' => isset($record['name']) ? $record['name'] : NULL,
+      '#type' => 'item',
+      '#markup' => isset($record['name']) ? $record['name'] : NULL,
     );
     $row['type'] = array(
-    	'#type' => 'item',
-    	'#markup' => $record['type'],
+      '#type' => 'item',
+      '#markup' => $record['type'],
     );
     $row['priority'] = array(
       '#type' => 'item',
@@ -200,6 +255,12 @@ function domains_domain_dns_record_row($record, $types) {
       '#size' => 5,
       '#default_value' => isset($record['priority']) ? $record['priority'] : NULL,
     );
+    if ($record) {
+      $row['delete'] = array(
+        '#type' => 'checkbox',
+        '#default_value' => 0,
+      );
+    }
   }
 
   return $row;

@@ -60,6 +60,62 @@ class DynECTDnsProvider extends DomainDnsProvider {
   }
 
   /**
+   * Perform mass update for DNS records
+   */
+  public function updateRecords($domain, $updates) {
+    foreach ($updates['new'] as $record) {
+      $this->_addRecord($domain, $record);
+    }
+
+    foreach ($updates['delete'] as $record) {
+      $this->_deleteRecord($domain, $record);
+    }
+
+    foreach ($updates['change'] as $record) {
+      $this->_updateRecord($domain, $record['#record'], $record);
+    }
+
+    $this->publishChange($domain);
+    return TRUE;
+  }
+
+  public function addRecord($domain, $record) {
+    $this->_addRecord($domain, $record);
+    $this->publishChange($domain);
+  }
+
+  protected function _addRecord($domain, $record) {
+    return TRUE;
+  }
+
+  public function deleteRecord($domain, $record) {
+    $result = $this->_deleteRecord($domain, $record);
+   	$this->publishChange($domain);
+  }
+
+  protected function _deleteRecord($domain, $record) {
+    $this->invoke("delete_record", array(
+      'record_type' => $record['#record']['record_type'],
+      'query' => "{$record['#record']['zone']}/{$record['#record']['fqdn']}/{$record['#record']['record_id']}",
+    ));
+  }
+
+  public function updateRecord($domain, $record, $update) {
+    $this->_updateRecord($domain, $record, $update);
+    $this->publishChange($domain);
+  }
+  
+  protected function _updateRecord($domain, $record, $update) {
+    
+  }
+
+  public function publishChange($domain) {
+    $this->invoke('publish_zone', array(
+      'zone' => $domain,
+    ));
+  }
+
+  /**
    * Invoke an operation
    */
   public function invoke($operation, $arguments, $exception=TRUE) {
@@ -88,6 +144,7 @@ class DynECTDnsProvider extends DomainDnsProvider {
    */
   public function normalizeRecord($record) {
     $record['readonly'] = FALSE;
+    $record['priority'] = '';
 
     switch ($record['type']) {
       case 'A':

@@ -31,14 +31,14 @@ function _wsclient_dynect_get_record($service, $record_uri, $reset = FALSE) {
 /**
  * Return record query string from record URL 
  */
-function _wsclient_dynect_record_query($record) {
-  $record = str_replace('/REST/', '', $record);
+function _wsclient_dynect_record_query($uri) {
+  $record = str_replace('/REST/', '', $uri);
   $tmp = explode('/', $record);
   $record_type = $tmp[0];
   array_shift($tmp);
 
   $types = _wsclient_dynect_support_type();
-  if (isset($types[$record['type']])) {
+  if (isset($types[$record_type])) {
     $type = $types[$record_type];
   }
   else {
@@ -46,7 +46,7 @@ function _wsclient_dynect_record_query($record) {
     $type = substr($record_type, 0, -6);
   }
 
-  return array('record_type' => $record_type, 'query' => implode('/', $tmp), 'type' => $type);
+  return array('record_type' => $record_type, 'query' => implode('/', $tmp), 'type' => $type, "uri" => $uri);
 }
 
 /**
