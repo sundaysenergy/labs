@@ -60,8 +60,13 @@ class DynECTWSClientRestEndpoint extends WSClientRESTEndpoint {
     catch (HttpClientException $e) {
       watchdog('dynECT', 'Error invoking the REST service %name, operation %operation: %error', array('%name' => $this->service->label, '%operation' => $operation_name, '%error' => $e->getMessage()), WATCHDOG_ERROR);
 
-      // Cause clone error on PHP 5.3.
-      //return $e->getResponse();
+      // Return error response.
+      $response = $e->getResponse();
+      if ($response && $response->body) {
+        $err_response = json_decode($response->body, TRUE);
+        return $err_response;
+      }
+
       return FALSE;
     }
   }
