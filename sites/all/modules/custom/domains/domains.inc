@@ -399,7 +399,7 @@ function _domains_handle_exception($exception) {
   // TODO: make options to silent these detail errors
   // TODO: and log them
   drupal_set_message($exception->getMessage(), 'error');
-  
+
   if ($exception instanceof DomainProviderException) {
     foreach ($exception->getAdditionalErrors() as $error) {
       drupal_set_message($error, 'error');

@@ -95,6 +95,7 @@ function domains_domain_dns_form_submit($form, &$form_state) {
  * Domain dns records form
  */
 function domains_domain_dns_records_form($form, &$form_state, $domain) {
+
   $info = domains_dns_get_providers($domain->dns_provider);
   $types = array('' => t('--')) + domains_dns_get_record_types($domain->dns_provider);
 
@@ -164,8 +165,10 @@ function domains_domain_dns_records_more_submit($form, &$form_state) {
 function domains_domain_dns_records_form_validate($form, &$form_state) {
   foreach ($form_state['values']['records'] as $element_index => $record) {
     switch ($record['type']) {
+      case 'MX':
       case 'A':
       case 'CNAME':
+        // TODO: Validate record value.
         if (empty($record['value'])) {
           form_set_error("records][$element_index][value", t('Record value is missing.'));
         }

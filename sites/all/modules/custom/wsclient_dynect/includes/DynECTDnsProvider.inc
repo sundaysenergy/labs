@@ -85,7 +85,12 @@ class DynECTDnsProvider extends DomainDnsProvider {
   }
 
   protected function _addRecord($domain, $record) {
-    return TRUE;
+    $dynect_record = $this->denormalizeRecord($domain, $record);
+    if (!$dynect_record) {
+      throw new DomainException("Unsupported record type");
+    }
+
+    $this->invoke('create_record', $dynect_record);
   }
 
   public function deleteRecord($domain, $record) {
@@ -134,7 +139,7 @@ class DynECTDnsProvider extends DomainDnsProvider {
       }
 
       if ($exception) {
-        throw new DomainProviderException(t('Unable to perform service operations.', $error));
+        throw new DomainProviderException(t('Unable to perform service operations.'), $error);
       }
     }
   }
@@ -147,6 +152,7 @@ class DynECTDnsProvider extends DomainDnsProvider {
     $record['priority'] = '';
 
     switch ($record['type']) {
+      case 'AAAA':
       case 'A':
         $record['value'] = $record['rdata']['address'];
         break;
@@ -198,11 +204,77 @@ class DynECTDnsProvider extends DomainDnsProvider {
     return $record;
   }
 
+  /**
+   * Convert normal record array to dynect record data
+   */
+  public function denormalizeRecord($domain, $record) {
+    if ($record['name'] != '') {
+      $fqdn = "{$record['name']}.$domain";
+    }
+    else {
+      $fqdn = $domain;
+    }
+
+    $new_record = array(
+      'ttl' => 0,
+      'zone' => $domain,
+      'fqdn' => $fqdn,
+    );
+
+    // Only support a few record so far.
+    switch ($record['type']) {
+      case 'PTR':
+        $new_record['record_type'] = 'PTRRecord';
+        $new_record['rdata']['ptrdname'] = $record['value'];
+        break;
+
+      case 'TXT':
+        $new_record['record_type'] = 'TXTRecord';
+        $new_record['rdata']['txtdata'] = $record['value'];
+        break;
+
+      case 'MX':
+        $new_record['record_type'] = 'MXRecord';
+        $new_record['rdata']['exchange'] = $record['value'];
+        $new_record['rdata']['preference'] = $record['priority'];
+        break;
+
+      case 'CNAME':
+        $new_record['record_type'] = 'CNAMERecord';
+        $new_record['rdata']['cname'] = $record['value'];
+        break;
+
+      case 'AAAA':
+        $new_record['record_type'] = 'AAAARecord';
+        $new_record['rdata']['address'] = $record['value'];
+        break;
+
+      case 'A':
+        $new_record['record_type'] = 'ARecord';
+        $new_record['rdata']['address'] = $record['value'];
+        break;
+
+      default:
+        $new_record = null;
+    }
+
+    return $new_record;
+  }
+
   public function getService() {
     if (!$this->service) {
       $this->service = wsclient_service_load('dynect');
     }
 
     return $this->service;
+  }
+
+  /**
+   * Get supported record types
+   */
+  public function getRecordTypes() {
+    return array(
+        'A', 'AAAA', 'CNAME', 'MX', 'TXT', 'SPF'
+    );
   }
 }
