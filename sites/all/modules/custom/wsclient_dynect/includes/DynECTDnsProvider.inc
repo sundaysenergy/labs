@@ -99,9 +99,13 @@ class DynECTDnsProvider extends DomainDnsProvider {
   }
 
   protected function _deleteRecord($domain, $record) {
+    if (isset($record['#record'])) {
+      $record = $record['#record'];
+    }
+
     $this->invoke("delete_record", array(
-      'record_type' => $record['#record']['record_type'],
-      'query' => "{$record['#record']['zone']}/{$record['#record']['fqdn']}/{$record['#record']['record_id']}",
+      'record_type' => $record['record_type'],
+      'query' => "{$record['zone']}/{$record['fqdn']}/{$record['record_id']}",
     ));
   }
 
@@ -111,7 +115,22 @@ class DynECTDnsProvider extends DomainDnsProvider {
   }
   
   protected function _updateRecord($domain, $record, $update) {
-    
+    $dynect_record = $this->denormalizeRecord($domain, $update);
+    if (!$dynect_record) {
+      throw new DomainException("Unsupported record type");
+    }
+    if (empty($record['record_id'])) {
+      throw new DomainException("Record ID is missing");
+    }
+
+    if ($dynect_record['fqdn'] == $record['fqdn'] && $dynect_record['record_type'] == $record['record_type']) {
+      $dynect_record['record_id'] = $record['record_id'];
+      $this->invoke('update_record', $dynect_record);
+    }
+    else {
+      $this->_deleteRecord($domain, $record);
+      $this->_addRecord($domain, $update);
+    }
   }
 
   public function publishChange($domain) {

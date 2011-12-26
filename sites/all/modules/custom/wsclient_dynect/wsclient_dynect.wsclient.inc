@@ -147,8 +147,8 @@ function wsclient_dynect_default_wsclient_service() {
     'result' => array('type' => 'dynect_result', 'label' => 'Session Result'),
   );
   $service->operations['publish_zone'] = $publish_zone_operations;
-  
-  // Create a record
+
+  // Create a record.
   $record_type = _wsclient_dynect_support_type();
   $create_record_operations = array(
     'label' => 'Create A Record',
@@ -166,7 +166,26 @@ function wsclient_dynect_default_wsclient_service() {
   );
   $service->operations['create_record'] = $create_record_operations;
 
-  // Delete a record
+  // Update a record.
+  $record_type = _wsclient_dynect_support_type();
+  $operation = array(
+    'label' => 'Update A Record',
+    'type' => 'PUT',
+    'url' => '/',
+    'parameter' => array(
+      'record_type' => array('type' => 'text', 'label' => 'Type of record will create, one of ' . implode(',', $record_type)),
+      'zone' => array('type' => 'text', 'label' => 'Name of the zone to create'),
+      'fqdn' => array('type' => 'text', 'label' => 'Name of the record to create'),
+      'record_id' => array('type' => 'text', 'label' => 'Record ID'),
+      'rdata' => array('type' => 'struct', 'label' => 'Data of the record'),
+    ),
+    'merge_url' => array('record_type', 'zone', 'fqdn', 'record_id'),
+    'data' => array('rdata'),
+    'result' => array('type' => 'dynect_result', 'label' => 'Session Result'),
+  );
+  $service->operations['update_record'] = $operation;
+
+  // Delete a record.
   $operation = array(
     'label' => 'Delete A Record',
     'type' => 'DELETE',

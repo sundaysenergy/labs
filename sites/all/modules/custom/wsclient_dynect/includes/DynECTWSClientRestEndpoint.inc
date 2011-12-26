@@ -55,13 +55,14 @@ class DynECTWSClientRestEndpoint extends WSClientRESTEndpoint {
           ),
         ),
       )));
+
       return $response;
     }
     catch (HttpClientException $e) {
       watchdog('dynECT', 'Error invoking the REST service %name, operation %operation: %error', array('%name' => $this->service->label, '%operation' => $operation_name, '%error' => $e->getMessage()), WATCHDOG_ERROR);
 
       // Return error response.
-      $response = $e->getResponse();
+      $response = $this->client()->lastResponse;
       if ($response && $response->body) {
         $err_response = json_decode($response->body, TRUE);
         return $err_response;
