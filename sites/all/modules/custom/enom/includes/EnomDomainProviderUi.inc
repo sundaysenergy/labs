@@ -1,7 +1,6 @@
 <?php
 
 class EnomDomainProviderUi extends DomainProviderUI {
-
   public function buildConfigForm(&$form, &$form_state) {
     $form['login_info'] = array(
       '#type' => 'fieldset',
@@ -13,7 +12,13 @@ class EnomDomainProviderUi extends DomainProviderUI {
       '#markup' => t('Enom API can be configured at Web Services interface.'),
     );
 
-    $account_info = $this->provider->invoke('GetAllAccountInfo');
+    try {
+      $account_info = $this->provider->invoke('GetAllAccountInfo');
+    }
+    catch (Exception $e) {
+      $account_info = array();
+    }
+
     $form['#default_info'] = $account_info;
 
     $form['account'] = array(
@@ -23,7 +28,7 @@ class EnomDomainProviderUi extends DomainProviderUI {
       '#collapsible' => TRUE,
       '#tree' => TRUE,
     );
-    
+
     $form['account']['login'] = array(
       '#type' => 'fieldset',
       '#title' => t('Login information'),
@@ -34,12 +39,12 @@ class EnomDomainProviderUi extends DomainProviderUI {
     $form['account']['login']['uid'] = array(
       '#type' => 'item',
       '#title' => t('User ID'),
-      '#markup' => $account_info['UserID']
+      '#markup' => isset($account_info['UserID']) ? $account_info['UserID'] : ''
     );
 
     $form['account']['login']['password'] = array(
       '#type' => 'password_confirm',
-      '#description' => t('To change the current password, enter the new password in both fields.'),
+      '#description' => '!!!'  .  t('To change the current password, enter the new password in both fields.'),
     );
 
     $form['account']['login']['question'] = array(
@@ -51,103 +56,103 @@ class EnomDomainProviderUi extends DomainProviderUI {
         'shigh' => t('Highschool'),
       ),
       '#required' => TRUE,
-      '#default_value' => $account_info['AuthQuestionType'],
+      '#default_value' => isset($account_info['AuthQuestionType']) ? $account_info['AuthQuestionType'] : '',
     );
-    
+
     $form['account']['login']['answer'] = array(
       '#type' => 'textfield',
       '#title' => t('Secret word'),
       '#required' => TRUE,
-      '#default_value' => $account_info['AuthQuestionAnswer'],
+      '#default_value' => isset($account_info['AuthQuestionAnswer']) ? $account_info['AuthQuestionAnswer'] : '',
     );
-    
+
     $form['account']['email'] = array(
       '#type' => 'textfield',
       '#title' => t('Email'),
       '#required' => TRUE,
-      '#default_value' => $account_info['EmailAddress']
+      '#default_value' => isset($account_info['EmailAddress'])? $account_info['EmailAddress'] : ''
     );
 
     $form['account']['organization'] = array(
       '#type' => 'textfield',
       '#title' => t('Organization name'),
-      '#default_value' => $account_info['OrganizationName'],
+      '#default_value' => isset($account_info['OrganizationName']) ? $account_info['OrganizationName'] : '',
     );
-    
+
     $form['account']['title'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
       '#description' => t('Required if Organization name is used.'),
-      '#default_value' => $account_info['JobTitle'],
+      '#default_value' => isset($account_info['JobTitle']) ? $account_info['JobTitle'] : '',
     );
 
     $form['account']['firstname'] = array(
       '#type' => 'textfield',
       '#title' => t('First name'),
       '#required' => TRUE,
-      '#default_value' => $account_info['Fname'],
+      '#default_value' => isset($account_info['Fname']) ? $account_info['Fname'] : '',
     );
 
     $form['account']['lastname'] = array(
       '#type' => 'textfield',
       '#title' => t('Last name'),
       '#required' => TRUE,
-      '#default_value' => $account_info['Lname'],
+      '#default_value' => isset($account_info['Lname']) ? $account_info['Lname'] : '',
     );
 
     $form['account']['address1'] = array(
       '#type' => 'textfield',
       '#title' => t('Address 1'),
       '#required' => TRUE,
-      '#default_value' => $account_info['Address'][0],
+      '#default_value' => isset($account_info['Address'][0]) ? $account_info['Address'][0] : '',
     );
 
     $form['account']['address2'] = array(
       '#type' => 'textfield',
       '#title' => t('Address 2'),
-      '#default_value' => $account_info['Address'][1],
+      '#default_value' => isset($account_info['Address'][1]) ? $account_info['Address'][1] : '',
     );
 
     $form['account']['phone'] = array(
       '#type' => 'textfield',
       '#title' => t('Phone'),
       '#required' => TRUE,
-      '#default_value' => $account_info['Phone']
+      '#default_value' => isset($account_info['Phone']) ? $account_info['Phone'] : ''
     );
 
     $form['account']['fax'] = array(
       '#type' => 'textfield',
       '#title' => t('Fax'),
       '#required' => TRUE,
-      '#default_value' => $account_info['Fax']
+      '#default_value' => isset($account_info['Fax']) ? $account_info['Fax'] : ''
     );
 
     $form['account']['country'] = array(
       '#type' => 'textfield',
       '#title' => t('Country'),
       '#required' => TRUE,
-      '#default_value' => $account_info['Country'],
+      '#default_value' => isset($account_info['Country']) ? $account_info['Country'] : '',
     );
 
     $form['account']['state_provine'] = array(
       '#type' => 'textfield',
       '#title' => t('State / Provine'),
       '#required' => TRUE,
-      '#default_value' => $account_info['StateProvince'],
+      '#default_value' => isset($account_info['StateProvince']) ? $account_info['StateProvince'] : '',
     );
 
     $form['account']['city'] = array(
       '#type' => 'textfield',
       '#title' => t('City'),
       '#required' => TRUE,
-      '#default_value' => $account_info['City'],
+      '#default_value' => isset($account_info['City']) ? $account_info['City'] : '',
     );
 
     $form['account']['postal_code'] = array(
       '#type' => 'textfield',
       '#title' => t('Postal Code'),
       '#required' => TRUE,
-      '#default_value' => $account_info['PostalCode'],
+      '#default_value' => isset($account_info['PostalCode']) ? $account_info['PostalCode'] : '',
     );
   }
 
