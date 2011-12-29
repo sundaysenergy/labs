@@ -37,15 +37,20 @@ class EnomDomainProviderUi extends DomainProviderUI {
     );
 
     $form['account']['login']['uid'] = array(
-      '#type' => 'item',
+      '#type' => 'textfield',
       '#title' => t('User ID'),
-      '#markup' => isset($account_info['UserID']) ? $account_info['UserID'] : ''
+      '#default_value' => isset($account_info['UserID']) ? $account_info['UserID'] : ''
     );
 
     $form['account']['login']['password'] = array(
-      '#type' => 'password_confirm',
+      '#type' => !empty($account_info) ? 'password_confirm' : 'password',
       '#description' => '!!!'  .  t('To change the current password, enter the new password in both fields.'),
     );
+
+    if (empty($account_info)) {
+      $form['account']['login']['#collapsed'] = FALSE;
+      return;
+    }
 
     $form['account']['login']['question'] = array(
       '#type' => 'select',
@@ -158,18 +163,18 @@ class EnomDomainProviderUi extends DomainProviderUI {
 
   public function validateConfigForm($form, &$form_state) {
     $account = $form_state['values']['account'];
-    if ($account['organization'] != '') {
+    if (!empty($account['organization'])) {
       // Require additional fields.
-      if ($account['title'] == '') {
+      if (!empty($account['title'])) {
         form_set_error('account][title', t('Title is required when Organization name is used.'));
       }
-      if ($account['fax'] == '') {
+      if (!empty($account['fax'])) {
         form_set_error('account][fax', t('Fax is required when Organization name is used.'));
       }
     }
 
     // Validate password
-    if ($account['login']['password'] != '') {
+    if (!empty($account['login']['password'])) {
       if (strlen($account['login']['password']) < 6 || strlen($account['login']['password']) > 20) {
         form_set_error('account][login][password', t('Password length must be between 6 to 20 characters.'));
       }
@@ -183,6 +188,13 @@ class EnomDomainProviderUi extends DomainProviderUI {
     $default_info = $form['#default_info'];
 
     $account = $form_state['values']['account'];
+
+    // Update reseller ID/Pass
+    variable_set('enom_login_uid', $account['login']['uid']);
+    variable_set('enom_login_pw', $account['login']['password']);
+    if (empty($default_info)) {
+      return;
+    }
 
     // Set original password.
     if ($account['login']['password'] == '') {
