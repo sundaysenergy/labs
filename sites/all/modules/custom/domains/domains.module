@@ -115,7 +115,7 @@ function domains_menu() {
   );
 
   // domain management dashboard
-  /* Replace by Views module
+  /** Replace by Views module
 	$items['domain'] = array(
     'title' => 'Manage Your Domains',
     'file' => 'domains.pages.inc',
