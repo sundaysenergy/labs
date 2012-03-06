@@ -115,7 +115,8 @@ function domains_menu() {
   );
 
   // domain management dashboard
-  $items['domain'] = array(
+  /* Replace by Views module
+	$items['domain'] = array(
     'title' => 'Manage Your Domains',
     'file' => 'domains.pages.inc',
     'page callback' => 'domains_dashboard_page',
@@ -149,6 +150,7 @@ function domains_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 2,
   );
+	*/
 
   $items['domain/import'] = array(
     'title' => 'Import Your Domains',

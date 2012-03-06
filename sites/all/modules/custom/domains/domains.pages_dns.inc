@@ -277,7 +277,7 @@ function _domains_dns_sort_record($a, $b) {
     elseif (empty($a['readonly'])) {
       return 1;
     }
-  }
+ }
   
   return strcmp($a['type'], $b['type']);
 }
