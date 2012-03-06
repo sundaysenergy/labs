@@ -266,7 +266,7 @@ function domains_entity_info() {
     'view modes' => array(
       'full' => array(
         'label' => t('Full content'),
-        'custom settings' => FALSE,
+        'custom settings' => TRUE,
       ),
     )
   );
