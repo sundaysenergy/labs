@@ -1,0 +1,72 @@
+[33mcommit c80e40ecee2cb92a43e32999da5483884ae402fa[m
+Author: Andy T <andychristiantruong@gmail.com>
+Date:   Thu Dec 29 14:24:29 2011 +0700
+
+    #28 - Allow user configure the reseller UID/Pass at /admin/config/domains/providers/enom/config
+
+[1mdiff --git a/sites/all/modules/custom/enom/includes/EnomDomainProviderUi.inc b/sites/all/modules/custom/enom/includes/EnomDomainProviderUi.inc[m
+[1mindex bc9fdfa..efe6412 100644[m
+[1m--- a/sites/all/modules/custom/enom/includes/EnomDomainProviderUi.inc[m
+[1m+++ b/sites/all/modules/custom/enom/includes/EnomDomainProviderUi.inc[m
+[36m@@ -37,16 +37,21 @@[m [mclass EnomDomainProviderUi extends DomainProviderUI {[m
+     );[m
+ [m
+     $form['account']['login']['uid'] = array([m
+[31m-      '#type' => 'item',[m
+[32m+[m[32m      '#type' => 'textfield',[m
+       '#title' => t('User ID'),[m
+[31m-      '#markup' => isset($account_info['UserID']) ? $account_info['UserID'] : ''[m
+[32m+[m[32m      '#default_value' => isset($account_info['UserID']) ? $account_info['UserID'] : ''[m
+     );[m
+ [m
+     $form['account']['login']['password'] = array([m
+[31m-      '#type' => 'password_confirm',[m
+[32m+[m[32m      '#type' => !empty($account_info) ? 'password_confirm' : 'password',[m
+       '#description' => '!!!'  .  t('To change the current password, enter the new password in both fields.'),[m
+     );[m
+ [m
+[32m+[m[32m    if (empty($account_info)) {[m
+[32m+[m[32m      $form['account']['login']['#collapsed'] = FALSE;[m
+[32m+[m[32m      return;[m
+[32m+[m[32m    }[m
+[32m+[m
+     $form['account']['login']['question'] = array([m
+       '#type' => 'select',[m
+       '#title' => t('Secret question'),[m
+[36m@@ -158,18 +163,18 @@[m [mclass EnomDomainProviderUi extends DomainProviderUI {[m
+ [m
+   public function validateConfigForm($form, &$form_state) {[m
+     $account = $form_state['values']['account'];[m
+[31m-    if ($account['organization'] != '') {[m
+[32m+[m[32m    if (!empty($account['organization'])) {[m
+       // Require additional fields.[m
+[31m-      if ($account['title'] == '') {[m
+[32m+[m[32m      if (!empty($account['title'])) {[m
+         form_set_error('account][title', t('Title is required when Organization name is used.'));[m
+       }[m
+[31m-      if ($account['fax'] == '') {[m
+[32m+[m[32m      if (!empty($account['fax'])) {[m
+         form_set_error('account][fax', t('Fax is required when Organization name is used.'));[m
+       }[m
+     }[m
+ [m
+     // Validate password[m
+[31m-    if ($account['login']['password'] != '') {[m
+[32m+[m[32m    if (!empty($account['login']['password'])) {[m
+       if (strlen($account['login']['password']) < 6 || strlen($account['login']['password']) > 20) {[m
+         form_set_error('account][login][password', t('Password length must be between 6 to 20 characters.'));[m
+       }[m
+[36m@@ -184,6 +189,13 @@[m [mclass EnomDomainProviderUi extends DomainProviderUI {[m
+ [m
+     $account = $form_state['values']['account'];[m
+ [m
+[32m+[m[32m    // Update reseller ID/Pass[m
+[32m+[m[32m    variable_set('enom_login_uid', $account['login']['uid']);[m
+[32m+[m[32m    variable_set('enom_login_pw', $account['login']['password']);[m
+[32m+[m[32m    if (empty($default_info)) {[m
+[32m+[m[32m      return;[m
+[32m+[m[32m    }[m
+[32m+[m
+     // Set original password.[m
+     if ($account['login']['password'] == '') {[m
+       $account['login']['password'] = $default_info['Password'];[m
