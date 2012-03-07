@@ -241,14 +241,13 @@ function domains_theme() {
  * Implements hook_entity_info()
  */
 function domains_entity_info() {
-	
-	$info['domains_domain'] = array(
+  $info['domains_domain'] = array(
     'label' => t('Domain'),
     'entity class' => 'DomainEntity',
     'controller class' => 'DomainEntityController',
     'metadata controller class' => '',
     'base table' => 'domain',
-    'module' => 'domains',
+    'module' => 'domain',
     'uri callback' => 'domains_domain_uri',
     'fieldable' => TRUE,
     'entity keys' => array(
