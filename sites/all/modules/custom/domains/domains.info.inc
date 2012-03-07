@@ -64,8 +64,8 @@ function domains_entity_property_info() {
     'label' => t("User"),
     'type' => 'user',
     'description' => t("Domain of user"),
-    'getter callback' => 'user_get_properties',
-    'setter callback' => 'user_set_properties',
+    'getter callback' => 'domains_domain_get_properties',
+    'setter callback' => 'domains_domain_set_properties',
     'required' => TRUE,
     'clear' => array('uid'),
 		'schema field' => 'domain_user'
