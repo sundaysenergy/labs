@@ -248,7 +248,7 @@ function domains_entity_info() {
     'controller class' => 'DomainEntityController',
     'metadata controller class' => '',
     'base table' => 'domain',
-    'modules' => 'domains',
+    'module' => 'domains',
     'uri callback' => 'domains_domain_uri',
     'fieldable' => TRUE,
     'entity keys' => array(
@@ -274,27 +274,6 @@ function domains_entity_info() {
     )
   );
 
-  return $info;
-}
-
-/**
- * Implements hook_entity_property_info()
-  */
-function domains_entity_property_info() {
-  $info = array();
-  $properties = &$info['domains']['properties'];
-
-  $properties = array(
-    'some_field' => array(
-      'type'  => 'integer',
-      'label' => t('Some field'),
-      'description' => t('This is some field.'),
-
-      // Map here the field from hook_schema().
-      'schema field' => 'some_field',
-    ),
-    // Other fields...
-  );
   return $info;
 }
 
