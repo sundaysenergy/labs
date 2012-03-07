@@ -241,7 +241,8 @@ function domains_theme() {
  * Implements hook_entity_info()
  */
 function domains_entity_info() {
-  $info['domains_domain'] = array(
+	
+	$info['domains_domain'] = array(
     'label' => t('Domain'),
     'entity class' => 'DomainEntity',
     'controller class' => 'DomainEntityController',
@@ -268,11 +269,32 @@ function domains_entity_info() {
     'view modes' => array(
       'full' => array(
         'label' => t('Full content'),
-        'custom settings' => TRUE,
+        'custom settings' => FALSE,
       ),
     )
   );
 
+  return $info;
+}
+
+/**
+ * Implements hook_entity_property_info()
+  */
+function domains_entity_property_info() {
+  $info = array();
+  $properties = &$info['domains']['properties'];
+
+  $properties = array(
+    'title' => array(
+      'type'  => 'integer',
+      'label' => t('Some field'),
+      'description' => t('This is some field.'),
+
+      // Map here the field from hook_schema().
+      'schema field' => 'some_field',
+    ),
+    // Other fields...
+  );
   return $info;
 }
 
