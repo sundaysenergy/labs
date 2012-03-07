@@ -132,7 +132,7 @@ function domains_menu() {
     'weight' => 0,
   );
   $time = 30 * 24 * 60 * 60; // 1 Month.
-  $items['domain/expiring_soon'] = array(
+  $items['domain/expiring-soon'] = array(
     'title' => 'Domains Expiring Soon',
     'file' => 'domains.pages.inc',
     'page callback' => 'domains_dashboard_page',
