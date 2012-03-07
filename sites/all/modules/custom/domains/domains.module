@@ -252,6 +252,8 @@ function domains_entity_info() {
     'fieldable' => TRUE,
     'entity keys' => array(
       'id' => 'id',
+			'name' => 'name',
+			'bundle' => 'type',
     ),
     'static cache' => TRUE,
     'bundles' => array(
