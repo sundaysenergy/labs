@@ -285,7 +285,7 @@ function domains_entity_property_info() {
   $properties = &$info['domains']['properties'];
 
   $properties = array(
-    'title' => array(
+    'some_field' => array(
       'type'  => 'integer',
       'label' => t('Some field'),
       'description' => t('This is some field.'),
