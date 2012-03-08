@@ -102,13 +102,13 @@ function domain_features_views_default_views() {
   $handler->display->display_options['defaults']['title'] = FALSE;
   $handler->display->display_options['title'] = 'Manage Your Domains';
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  $handler->display->display_options['path'] = 'domain';
+  $handler->display->display_options['path'] = 'domain/list';
   $handler->display->display_options['menu']['type'] = 'default tab';
   $handler->display->display_options['menu']['title'] = 'Manage Your Domain';
-  $handler->display->display_options['menu']['weight'] = '0';
+  $handler->display->display_options['menu']['weight'] = '-10';
   $handler->display->display_options['tab_options']['type'] = 'normal';
-  $handler->display->display_options['tab_options']['title'] = 'Domains';
-  $handler->display->display_options['tab_options']['weight'] = '0';
+  $handler->display->display_options['tab_options']['title'] = 'Manage your domains';
+  $handler->display->display_options['tab_options']['weight'] = '-1';
 
   /* Display: Domain Expire Soon */
   $handler = $view->new_display('page', 'Domain Expire Soon', 'page_1');
