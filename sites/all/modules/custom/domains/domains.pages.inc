@@ -5,38 +5,6 @@
  * Function to domains.module pages.
  */
 
-/**
- * Domain dashboard menu callback.
- */
-function domains_dashboard_page($time = 0) {
-  global $user;
-  $own_domain_query = new EntityFieldQuery();
-  $own_domain_query = $own_domain_query->entityCondition('entity_type', 'domains_domain')
-          ->propertyCondition('uid', $user->uid);
-
-  // Get expiring soon or expired
-  if (!empty($time)) {
-    if ($time > 0) {
-      // Get time expiring of domain <= $time
-      $own_domain_query = $own_domain_query->propertyCondition('expiration', REQUEST_TIME + $time, '<=');
-    } else {
-      $own_domain_query = $own_domain_query->propertyCondition('expiration', REQUEST_TIME, '<');
-    }
-  }
-  $own_domains = $own_domain_query->execute();
-  $domains = array();
-  if (isset($own_domains['domains_domain'])) {
-    $results = domains_domain_load_multiple(array_keys($own_domains['domains_domain']));
-    foreach ($results as $domain) {
-      $domains[] = l($domain->name, "domain/" . $domain->id);
-    }
-  }
-
-  return theme('item_list', array(
-            'items' => $domains,
-          ));
-}
-
 function domains_register_process_page() {
   // process callback, implement batch api for purchasing
   return 'TODO';

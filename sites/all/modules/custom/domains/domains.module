@@ -114,43 +114,6 @@ function domains_menu() {
     'access arguments' => array('create domain'),
   );
 
-  // domain management dashboard
-  /** Replace by Views module
-	$items['domain'] = array(
-    'title' => 'Manage Your Domains',
-    'file' => 'domains.pages.inc',
-    'page callback' => 'domains_dashboard_page',
-    'access callback' => TRUE,
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['domain/view'] = array(
-    'title' => 'Manage Your Domains',
-    'file' => 'domains.pages.inc',
-    'page callback' => 'domains_dashboard_page',
-    'access callback' => TRUE,
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 0,
-  );
-  $time = 30 * 24 * 60 * 60; // 1 Month.
-  $items['domain/expiring-soon'] = array(
-    'title' => 'Domains Expiring Soon',
-    'file' => 'domains.pages.inc',
-    'page callback' => 'domains_dashboard_page',
-    'page arguments' => array("$time"),
-    'access callback' => TRUE,
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 1,
-  );
-  $items['domain/expired'] = array(
-    'title' => 'Domains Expired',
-    'file' => 'domains.pages.inc',
-    'page callback' => 'domains_dashboard_page',
-    'page arguments' => array('-1'),
-    'access callback' => TRUE,
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 2,
-  );
-	*/
   $items['domain/import'] = array(
     'title' => 'Import Your Domains',
     'file' => 'domains.pages.inc',
@@ -251,8 +214,6 @@ function domains_entity_info() {
     'fieldable' => TRUE,
     'entity keys' => array(
       'id' => 'id',
-			'name' => 'name',
-			'bundle' => 'type',
     ),
     'static cache' => TRUE,
     'bundles' => array(

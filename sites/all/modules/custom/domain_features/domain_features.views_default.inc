@@ -29,9 +29,43 @@ function domain_features_views_default_views() {
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '10';
-  $handler->display->display_options['style_plugin'] = 'default';
-  $handler->display->display_options['row_plugin'] = 'fields';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '100';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['pager']['options']['id'] = '0';
+  $handler->display->display_options['pager']['options']['expose']['items_per_page_options_all'] = 0;
+  $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['columns'] = array(
+    'id' => 'id',
+    'name' => 'name',
+    'expiration' => 'expiration',
+  );
+  $handler->display->display_options['style_options']['default'] = '-1';
+  $handler->display->display_options['style_options']['info'] = array(
+    'id' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+    'name' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+    'expiration' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+  );
+  $handler->display->display_options['style_options']['override'] = 1;
+  $handler->display->display_options['style_options']['sticky'] = 0;
+  $handler->display->display_options['style_options']['empty_table'] = 0;
   /* Field: Domain: Domain ID */
   $handler->display->display_options['fields']['id']['id'] = 'id';
   $handler->display->display_options['fields']['id']['table'] = 'domain';
@@ -61,7 +95,7 @@ function domain_features_views_default_views() {
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'domain';
   $handler->display->display_options['fields']['name']['field'] = 'name';
-  $handler->display->display_options['fields']['name']['label'] = '';
+  $handler->display->display_options['fields']['name']['label'] = 'Domain name';
   $handler->display->display_options['fields']['name']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['name']['alter']['make_link'] = 1;
   $handler->display->display_options['fields']['name']['alter']['path'] = 'domain/%1';
@@ -75,11 +109,33 @@ function domain_features_views_default_views() {
   $handler->display->display_options['fields']['name']['alter']['strip_tags'] = 0;
   $handler->display->display_options['fields']['name']['alter']['trim'] = 0;
   $handler->display->display_options['fields']['name']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['name']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['name']['element_label_colon'] = 0;
   $handler->display->display_options['fields']['name']['element_default_classes'] = 1;
   $handler->display->display_options['fields']['name']['hide_empty'] = 0;
   $handler->display->display_options['fields']['name']['empty_zero'] = 0;
   $handler->display->display_options['fields']['name']['hide_alter_empty'] = 1;
+  /* Field: Domain: Expiration date */
+  $handler->display->display_options['fields']['expiration']['id'] = 'expiration';
+  $handler->display->display_options['fields']['expiration']['table'] = 'domain';
+  $handler->display->display_options['fields']['expiration']['field'] = 'expiration';
+  $handler->display->display_options['fields']['expiration']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['expiration']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['expiration']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['expiration']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['expiration']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['expiration']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['expiration']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['expiration']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['expiration']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['expiration']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['expiration']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['expiration']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['expiration']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['expiration']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['expiration']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['expiration']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['expiration']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['expiration']['date_format'] = 'long';
   /* Contextual filter: Domain: Creator ID */
   $handler->display->display_options['arguments']['uid']['id'] = 'uid';
   $handler->display->display_options['arguments']['uid']['table'] = 'domain';
