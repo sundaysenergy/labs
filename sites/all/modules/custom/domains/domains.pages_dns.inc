@@ -4,7 +4,8 @@
  * Domain dns form
  */
 function domains_domain_dns_form($form, &$form_state, $domain) {
-  $providers = domains_dns_get_providers();
+  
+	$providers = domains_dns_get_providers();
 
   $form['#domain'] = $domain;
   $form['#providers'] = $providers;
@@ -29,9 +30,9 @@ function domains_domain_dns_form($form, &$form_state, $domain) {
   if (isset($form_state['values'])) {
     $dns_provider = $form_state['values']['provider'];
   }
-
+	
   $provider_info = $providers[$dns_provider];
-
+	
   $form['settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('Settings'),
@@ -55,7 +56,7 @@ function domains_domain_dns_form($form, &$form_state, $domain) {
     '#type' => 'submit',
     '#value' => t('Save'),
   );
-
+	
   return $form;
 }
 
@@ -71,31 +72,36 @@ function domains_domain_dns_form_submit($form, &$form_state) {
   $new_provider = $form_state['values']['provider'];
   $success = TRUE;
   $ns = NULL;
-  
-  try {
-    $settings = isset($form_state['values']['settings']) ? (array)$form_state['values']['settings'] : array();
-    $ns = domains_dns_get_provider($new_provider)->activate($domain->name, $settings);
+	$updates = domains_dns_get_records($domain);
+  domains_dns_update_records($new_provider, $updates);
+	if (domains_dns_update_records($new_provider, $updates)) {
+		try {
+			$settings = isset($form_state['values']['settings']) ? (array)$form_state['values']['settings'] : array();
+			$ns = domains_dns_get_provider($new_provider)->activate($domain->name, $settings);
 
-    if (is_array($ns)) {
-      $success = domains_set_nameservers($domain, $ns);
+			if (is_array($ns)) {
+				$success = domains_set_nameservers($domain, $ns);
     }
-  } catch (Exception $ex) {
-    _domains_handle_exception($ex);
-    $success = FALSE;
-  }
+		} catch (Exception $ex) {
+			_domains_handle_exception($ex);
+			$success = FALSE;
+		}
 
-  if (TRUE === $success) {
-    $domain->dns_provider = $new_provider;
-    domains_domain_save($domain);
-    drupal_set_message(t('Domain nameserver has been updated.'));
-  }
+		if (TRUE === $success) {
+			$domain->dns_provider = $new_provider;
+			domains_domain_save($domain);
+			drupal_set_message(t('Domain nameserver has been updated.'));
+		}
+	} else {
+		drupal_set_message(t('Domain nameserver has not been updated.'));
+	}
+  
 }
 
 /**
  * Domain dns records form
  */
 function domains_domain_dns_records_form($form, &$form_state, $domain) {
-
   $info = domains_dns_get_providers($domain->dns_provider);
   $types = array('' => t('--')) + domains_dns_get_record_types($domain->dns_provider);
 
