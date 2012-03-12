@@ -27,12 +27,13 @@ function domains_domain_dns_form($form, &$form_state, $domain) {
   );
 
   $dns_provider = $domain->dns_provider;
+	
   if (isset($form_state['values'])) {
     $dns_provider = $form_state['values']['provider'];
   }
 	
   $provider_info = $providers[$dns_provider];
-	
+	//var_dump($providers); exit;
   $form['settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('Settings'),
@@ -83,8 +84,8 @@ function domains_domain_dns_form_submit($form, &$form_state) {
 				$success = domains_set_nameservers($domain, $ns);
     }
 		} catch (Exception $ex) {
-			_domains_handle_exception($ex);
-			$success = FALSE;
+				_domains_handle_exception($ex);
+				$success = FALSE;
 		}
 
 		if (TRUE === $success) {
@@ -93,7 +94,7 @@ function domains_domain_dns_form_submit($form, &$form_state) {
 			drupal_set_message(t('Domain nameserver has been updated.'));
 		}
 	} else {
-		drupal_set_message(t('Domain nameserver has not been updated.'));
+			drupal_set_message(t('Domain nameserver has not been updated.'));
 	}
   
 }
