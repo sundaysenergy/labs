@@ -98,7 +98,7 @@ function domain_features_views_default_views() {
   $handler->display->display_options['fields']['name']['label'] = 'Domain name';
   $handler->display->display_options['fields']['name']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['name']['alter']['make_link'] = 1;
-  $handler->display->display_options['fields']['name']['alter']['path'] = 'domain/%1';
+  $handler->display->display_options['fields']['name']['alter']['path'] = 'domain/[id]';
   $handler->display->display_options['fields']['name']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['name']['alter']['external'] = 0;
   $handler->display->display_options['fields']['name']['alter']['replace_spaces'] = 0;
