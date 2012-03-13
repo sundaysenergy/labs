@@ -66,7 +66,7 @@ function domains_menu() {
     'file' => 'domains.pages.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('domains_whois_form', 1),
-    'access callback' => TRUE,
+    'access arguments' => array('view whois'),
     'type' => MENU_LOCAL_TASK,
   );
   $items['domain/%domains_domain/renew'] = array(
@@ -179,6 +179,9 @@ function domains_permission() {
     ),
     'delete domain' => array(
       'title' => t('Delete domain'),
+    ),
+		'view whois' => array(
+      'title' => t('View whois'),
     ),
   );
 }
