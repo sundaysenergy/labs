@@ -85,6 +85,12 @@ class HttpClientINIFormatter implements HttpClientFormatter {
   public function mimeType() {
     return 'text/html';
   }
+
+  public function accepts() {
+  }
+
+  public function contentType() {
+  }
 }
 
 if (!function_exists('parse_ini_string')) {
@@ -102,7 +108,7 @@ if (!function_exists('parse_ini_string')) {
           }
           if(!strpos($line, '=')) // (We don't use "=== false" because value 0 is not valid as well)
               continue;
-          
+
           $tmp = explode("=", $line, 2);
           if($ProcessSections && $inSect)
               $return[$inSect][trim($tmp[0])] = ltrim($tmp[1]);
