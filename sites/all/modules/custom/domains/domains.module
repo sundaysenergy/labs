@@ -67,7 +67,7 @@ function domains_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('domains_whois_form', 1),
     'access callback' => 'domain_whois_info_access',
-		'access arguments' => array('edit', 1),
+    'access arguments' => array('edit', 1),
     'type' => MENU_LOCAL_TASK,
   );
   $items['domain/%domains_domain/renew'] = array(
