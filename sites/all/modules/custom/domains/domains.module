@@ -66,7 +66,7 @@ function domains_menu() {
     'file' => 'domains.pages.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('domains_whois_form', 1),
-    'access arguments' => array('view whois'),
+		'access callback' => 'whois_info_access',
     'type' => MENU_LOCAL_TASK,
   );
   $items['domain/%domains_domain/renew'] = array(
@@ -180,11 +180,38 @@ function domains_permission() {
     'delete domain' => array(
       'title' => t('Delete domain'),
     ),
-		'view whois' => array(
-      'title' => t('View whois'),
-    ),
   );
 }
+
+/*
+ ** Define rule access whois page for own 
+ */
+function whois_info_access() {
+	
+  //7 is position domain id appears as arg on the url
+  $str = $_GET['q'];
+  $n = stripos($str,'/',7) - 7;
+	
+  $access = FALSE;
+  //check the own domain
+  $result = db_query('SELECT n.name FROM {domain} n WHERE n.uid = :user and n.id = :id', 
+                      array(':user' => $GLOBALS['user']->uid,
+                            ':id' => substr($str,7,$n),
+                      )
+                    );
+										
+  foreach ($result as $record) {
+    $a = $record->name;
+  }
+	
+  //roles[3] is administrator role
+  if (isset($a) || isset($GLOBALS['user']->roles[3])) {
+    $access = TRUE;
+  }
+	
+  return $access;
+}
+
 
 /**
  * Implements hook_theme
