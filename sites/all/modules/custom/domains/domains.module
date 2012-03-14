@@ -199,13 +199,9 @@ function whois_info_access() {
                             ':id' => substr($str,7,$n),
                       )
                     );
-										
-  foreach ($result as $record) {
-    $a = $record->name;
-  }
-	
+
   //roles[3] is administrator role
-  if (isset($a) || isset($GLOBALS['user']->roles[3])) {
+  if (isset($result->fetchObject()->name) || isset($GLOBALS['user']->roles[3])) {
     $access = TRUE;
   }
 	
