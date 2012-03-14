@@ -53,12 +53,6 @@ function wsclient_schema() {
         'serialize' => TRUE,
         'description' => 'The complex data types used in the operations.',
       ),
-      'global_parameters' => array(
-        'type' => 'text',
-        'not null' => FALSE,
-        'serialize' => TRUE,
-        'description' => 'The global parameters definition of this web service.',
-      ),
       'type' => array(
         'type' => 'varchar',
         'length' => '255',
@@ -165,18 +159,4 @@ function wsclient_update_7100() {
     'length' => 255,
     'not null' => FALSE,
   ));
-}
-
-/**
- * Add global_parameters column.
- */
-function wsclient_update_7101() {
-  if (!db_field_exists('wsclient_service', 'global_parameters')) {
-    db_add_field('wsclient_service', 'global_parameters', array(
-      'type' => 'text',
-      'not null' => FALSE,
-      'serialize' => TRUE,
-      'description' => 'The global parameters definition of this web service.',
-    ));
-  }
 }

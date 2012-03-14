@@ -1,13 +1,14 @@
 name = Entity Construction Kit
 description = ECK (Entity Construction Kit) Allows users to create and administer entity types, bundles, and entities from an easy to use UI
-package = Entity
+package = ECK
 core = 7.x
 dependencies[] = entity
+dependencies[] = ctools
 
 
-; Information added by drupal.org packaging script on 2011-11-17
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2012-01-24
+version = "7.x-2.0-alpha1"
 core = "7.x"
 project = "eck"
-datestamp = "1321489209"
+datestamp = "1327376742"
 

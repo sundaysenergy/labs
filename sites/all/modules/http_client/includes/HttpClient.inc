@@ -136,7 +136,7 @@ class HttpClient {
 
     if (isset($request->data)) {
       if ($this->formatter) {
-        $request->setHeader('Content-type', $this->formatter->mimeType());
+        $request->setHeader('Content-type', $this->formatter->contentType());
         $request->data = $this->formatter->serialize($request->data);
       }
       else {
@@ -145,7 +145,7 @@ class HttpClient {
       $request->setHeader('Content-length', strlen($request->data));
     }
     if ($this->formatter) {
-      $request->setHeader('Accept', $this->formatter->mimeType());
+      $request->setHeader('Accept', $this->formatter->accepts());
     }
 
     // Allow the authentication implementation to do it's magic
@@ -158,7 +158,7 @@ class HttpClient {
 
     $result = NULL;
 
-    if ($response->responseCode == 200) {
+    if ($response->responseCode >= 200 && $response->responseCode <= 299) {
       if ($this->formatter) {
         try {
           $result = $this->formatter->unserialize($response->body);
@@ -366,6 +366,90 @@ class HttpClientBaseFormatter implements HttpClientFormatter {
   public function mimeType() {
     return $this->mimeTypes[$this->format];
   }
+
+  /**
+   * Return the mime type that the formatter can parse.
+   */
+  public function accepts() {
+    return $this->mimeType();
+  }
+
+  /**
+   * Return the content type form the data the formatter generates.
+   */
+  public function contentType() {
+    return $this->mimeType();
+  }
+}
+
+/**
+ * A utility formatter to use for creating assymetrical http client formatters.
+ */
+class HttpClientCompositeFormatter implements HttpClientFormatter {
+  private $send = null;
+  private $accept = null;
+
+  /**
+   * Creates an assymetrical formatter.
+   *
+   * @param string|HttpClientFormatter $send
+   *  Optional. The formatter to use when sending requests. Accepts one of
+   *  the HttpClientBaseFormatter::FORMAT_ constants or a HttpClientFormatter
+   *  object. Defaults to form encoded.
+   * @param string|HttpClientFormatter $accept
+   *  Optional. The formatter to use when parsing responses. Accepts one of
+   *  the HttpClientBaseFormatter::FORMAT_ constants or a HttpClientFormatter
+   *  object. Defaults to json.
+   */
+  public function __construct($send = HttpClientBaseFormatter::FORMAT_FORM, $accept = HttpClientBaseFormatter::FORMAT_JSON) {
+    if (is_string($send)) {
+      $send = new HttpClientBaseFormatter($send);
+    }
+    if (is_string($accept)) {
+      $accept = new HttpClientBaseFormatter($accept);
+    }
+
+    $this->send = $send;
+    $this->accept = $accept;
+  }
+
+  /**
+   * Serializes arbitrary data to the implemented format.
+   *
+   * @param mixed $data
+   *  The data that should be serialized.
+   * @return string
+   *  The serialized data as a string.
+   */
+  public function serialize($data) {
+    return $this->send->serialize($data);
+  }
+
+  /**
+   * Unserializes data in the implemented format.
+   *
+   * @param string $data
+   *  The data that should be unserialized.
+   * @return mixed
+   *  The unserialized data.
+   */
+  public function unserialize($data) {
+    return $this->accept->unserialize($data);
+  }
+
+  /**
+   * Return the mime type that the formatter can parse.
+   */
+  public function accepts() {
+    return $this->accept->mimeType();
+  }
+
+  /**
+   * Return the content type form the data the formatter generates.
+   */
+  public function contentType() {
+    return $this->send->mimeType();
+  }
 }
 
 /**
@@ -393,9 +477,14 @@ interface HttpClientFormatter {
   public function unserialize($data);
 
   /**
-   * Return the mime type to use.
+   * Return the mime type that the formatter can parse.
    */
-  public function mimeType();
+  public function accepts();
+
+  /**
+   * Return the content type form the data the formatter generates.
+   */
+  public function contentType();
 }
 
 /**
