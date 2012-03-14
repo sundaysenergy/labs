@@ -66,7 +66,8 @@ function domains_menu() {
     'file' => 'domains.pages.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('domains_whois_form', 1),
-		'access callback' => 'whois_info_access',
+    'access callback' => 'domain_whois_info_access',
+		'access arguments' => array('edit', 1),
     'type' => MENU_LOCAL_TASK,
   );
   $items['domain/%domains_domain/renew'] = array(
@@ -186,22 +187,12 @@ function domains_permission() {
 /*
  ** Define rule access whois page for own 
  */
-function whois_info_access() {
-	
-  //7 is position domain id appears as arg on the url
-  $str = $_GET['q'];
-  $n = stripos($str,'/',7) - 7;
-	
+function domain_whois_info_access($op, $domain) {
   $access = FALSE;
-  //check the own domain
-  $result = db_query('SELECT n.name FROM {domain} n WHERE n.uid = :user and n.id = :id', 
-                      array(':user' => $GLOBALS['user']->uid,
-                            ':id' => substr($str,7,$n),
-                      )
-                    );
-
+  
   //roles[3] is administrator role
-  if (isset($result->fetchObject()->name) || isset($GLOBALS['user']->roles[3])) {
+  //check the own domain
+  if (func_get_arg(1)->uid == $GLOBALS['user']->uid || isset($GLOBALS['user']->roles[3])) {
     $access = TRUE;
   }
 	
